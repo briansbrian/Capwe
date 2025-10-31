@@ -285,7 +285,7 @@ function scanPageForIndicators() {
   // Scan for ads
   if (settings.detectAds) {
     document.querySelectorAll('*').forEach(element => {
-      if (isAd(element) && !element._capweIndicator) {
+      if (isAd(element) && !element._capweIndicator && shouldShowIndicator(element)) {
         createIndicator(element, 'ad', 'AD');
       }
     });
@@ -294,7 +294,7 @@ function scanPageForIndicators() {
   // Scan for links
   if (settings.detectLinks) {
     document.querySelectorAll('a[href]').forEach(link => {
-      if (!link._capweIndicator) {
+      if (!link._capweIndicator && shouldShowIndicator(link)) {
         const type = link.href.startsWith(window.location.origin) ? 'link-internal' : 'link-external';
         const label = link.href.startsWith(window.location.origin) ? 'LINK' : 'EXT';
         createIndicator(link, type, label);
@@ -305,7 +305,7 @@ function scanPageForIndicators() {
   // Scan for forms
   if (settings.detectForms) {
     document.querySelectorAll('form').forEach(form => {
-      if (!form._capweIndicator) {
+      if (!form._capweIndicator && shouldShowIndicator(form)) {
         createIndicator(form, 'form', 'FORM');
       }
     });
@@ -515,6 +515,43 @@ function isHidden(element) {
     rect.height === 0 ||
     element.offsetParent === null
   );
+}
+
+// Check if element should show indicator (filters hidden dropdowns)
+function shouldShowIndicator(element) {
+  try {
+    // Get computed styles and dimensions
+    const style = window.getComputedStyle(element);
+    const rect = element.getBoundingClientRect();
+    
+    // Check 1: CSS visibility properties
+    if (style.display === 'none') return false;
+    if (style.visibility === 'hidden') return false;
+    
+    // Check 2: Opacity (hidden dropdown menus)
+    const opacity = parseFloat(style.opacity);
+    if (isNaN(opacity) || opacity < 0.1) return false;
+    
+    // Check 3: Element dimensions (collapsed menus, zero-height items)
+    if (rect.width < 5 || rect.height < 5) return false;
+    
+    // Check 4: offsetParent (detached or hidden parent containers)
+    if (element.offsetParent === null && style.position !== 'fixed' && style.position !== 'absolute') {
+      return false;
+    }
+    
+    // Check 5: Check if element or parent has zero dimensions
+    if (rect.top === 0 && rect.bottom === 0 && rect.left === 0 && rect.right === 0) {
+      // Element might be rendered but has no layout space
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    // If any error occurs during checks, default to showing indicator
+    console.error('Error checking element visibility:', error);
+    return true;
+  }
 }
 
 function analyzeHiddenElement(element) {
