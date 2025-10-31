@@ -197,18 +197,21 @@
     <ol>
       <li>Load the Capwe extension in Chrome (chrome://extensions/)</li>
       <li>Open this test page</li>
-      <li>Hover over different elements to see tooltips</li>
-      <li>Check the extension popup to toggle features on/off</li>
+      <li><strong>Look for persistent indicators:</strong> Small colored icons next to detected elements</li>
+      <li><strong>Hover over indicators:</strong> Click or hover to see detailed tooltips</li>
+      <li>Check the extension popup to toggle "Show Persistent Indicators" on/off</li>
       <li>Enable AI features if available (Chrome 128+)</li>
       <li>Configure Look Out criteria to test content monitoring</li>
     </ol>
     
     <h3>Expected Results:</h3>
     <ul>
-      <li><strong>Ads:</strong> Red border tooltip with "Advertisement" label</li>
-      <li><strong>External Links:</strong> Yellow border with destination info</li>
-      <li><strong>Forms:</strong> Blue border with security info (HTTP forms should show warnings)</li>
-      <li><strong>Hidden Elements:</strong> Gray border tooltip when detected</li>
+      <li><strong>Persistent Indicators:</strong> Small colored icons appear next to detected elements</li>
+      <li><strong>Ads:</strong> Red indicator (🛑) with red tooltip on hover</li>
+      <li><strong>External Links:</strong> Yellow indicator (🔗) with yellow tooltip on hover</li>
+      <li><strong>Internal Links:</strong> Green indicator (🏠) with green tooltip on hover</li>
+      <li><strong>Forms:</strong> Blue indicator (📝) with blue tooltip on hover</li>
+      <li><strong>Hidden Elements:</strong> Gray indicator (👁️) with gray tooltip on hover</li>
       <li><strong>AI Analysis:</strong> Additional insights when AI is enabled</li>
       <li><strong>Look Out Matches:</strong> Green pulsing border for matching content</li>
     </ul>

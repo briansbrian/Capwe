@@ -1,6 +1,8 @@
 // Capwe Content Script - Core Detection Logic
 'use strict';
 
+console.log('Capwe extension content script loaded');
+
 // Configuration
 const CONFIG = {
   TOOLTIP_DELAY: 150,
@@ -29,6 +31,7 @@ const AD_PATTERNS = {
 let tooltip = null;
 let tooltipTimeout = null;
 let autoHideTimeout = null;
+let activeIndicators = new Set();
 let settings = {
   enabled: true,
   detectAds: true,
@@ -37,6 +40,7 @@ let settings = {
   detectHidden: true,
   aiEnabled: false,
   lookOutEnabled: false,
+  showIndicators: true, // New setting for persistent indicators
 };
 
 // Use shared utilities
@@ -142,6 +146,153 @@ function hideTooltip() {
   
   if (tooltip) {
     tooltip.classList.remove('visible');
+  }
+}
+
+// Persistent indicator management
+function createIndicator(element, type, icon) {
+  if (!element || activeIndicators.has(element)) return;
+  
+  const indicator = document.createElement('div');
+  indicator.className = `capwe-indicator capwe-indicator-${type}`;
+  indicator.innerHTML = icon;
+  indicator.title = getIndicatorTitle(type);
+  
+  // Position indicator relative to element
+  positionIndicator(indicator, element);
+  
+  document.body.appendChild(indicator);
+  activeIndicators.add(element);
+  
+  // Store reference for cleanup
+  element._capweIndicator = indicator;
+  
+  // Add click handler to show detailed tooltip
+  indicator.addEventListener('click', (e) => {
+    e.stopPropagation();
+    showDetailedTooltip(element, type);
+  });
+}
+
+function positionIndicator(indicator, element) {
+  const rect = element.getBoundingClientRect();
+  
+  // Position indicator at top-right corner of element
+  let top = rect.top + window.scrollY - 8;
+  let left = rect.right + window.scrollX - 8;
+  
+  // Adjust if it goes off screen
+  const indicatorRect = indicator.getBoundingClientRect();
+  if (left + indicatorRect.width > window.innerWidth + window.scrollX) {
+    left = rect.left + window.scrollX - indicatorRect.width + 8;
+  }
+  if (top < window.scrollY) {
+    top = rect.bottom + window.scrollY - 8;
+  }
+  
+  indicator.style.top = `${top}px`;
+  indicator.style.left = `${left}px`;
+}
+
+function getIndicatorTitle(type) {
+  switch (type) {
+    case 'ad': return 'Advertisement - Hover for details';
+    case 'link-external': return 'External Link - Hover for details';
+    case 'link-internal': return 'Internal Link - Hover for details';
+    case 'form': return 'Form - Hover for details';
+    case 'hidden-element': return 'Hidden Element - Hover for details';
+    default: return 'Detected element - Hover for details';
+  }
+}
+
+async function showDetailedTooltip(element, type) {
+  let content = '';
+  
+  try {
+    if (type === 'ad') {
+      content = getAdInfo(element);
+    } else if (type.startsWith('link')) {
+      content = analyzeLink(element);
+    } else if (type === 'form') {
+      content = await analyzeForm(element);
+    } else if (type === 'hidden-element') {
+      content = analyzeHiddenElement(element);
+    }
+    
+    if (content) {
+      showTooltip(element, content, type);
+    }
+  } catch (error) {
+    console.error('Error showing detailed tooltip:', error);
+  }
+}
+
+function removeIndicator(element) {
+  if (element._capweIndicator) {
+    element._capweIndicator.remove();
+    delete element._capweIndicator;
+    activeIndicators.delete(element);
+  }
+}
+
+function clearAllIndicators() {
+  activeIndicators.forEach(element => {
+    if (element._capweIndicator) {
+      element._capweIndicator.remove();
+      delete element._capweIndicator;
+    }
+  });
+  activeIndicators.clear();
+}
+
+// Page scanning for persistent indicators
+function scanPageForIndicators() {
+  if (!settings.enabled || !settings.showIndicators) return;
+  
+  clearAllIndicators();
+  
+  // Scan for ads
+  if (settings.detectAds) {
+    document.querySelectorAll('*').forEach(element => {
+      if (isAd(element) && !element._capweIndicator) {
+        createIndicator(element, 'ad', '🛑');
+      }
+    });
+  }
+  
+  // Scan for links
+  if (settings.detectLinks) {
+    document.querySelectorAll('a[href]').forEach(link => {
+      if (!link._capweIndicator) {
+        const type = link.href.startsWith(window.location.origin) ? 'link-internal' : 'link-external';
+        const icon = link.href.startsWith(window.location.origin) ? '🏠' : '🔗';
+        createIndicator(link, type, icon);
+      }
+    });
+  }
+  
+  // Scan for forms
+  if (settings.detectForms) {
+    document.querySelectorAll('form').forEach(form => {
+      if (!form._capweIndicator) {
+        createIndicator(form, 'form', '📝');
+      }
+    });
+  }
+  
+  // Scan for hidden elements
+  if (settings.detectHidden) {
+    document.querySelectorAll('*').forEach(element => {
+      if (!element._capweIndicator) {
+        const tagName = element.tagName.toLowerCase();
+        const isTrackingPixel = tagName === 'img' && element.width === 1 && element.height === 1;
+        const isActuallyHidden = isHidden(element);
+        
+        if (isTrackingPixel || (isActuallyHidden && (tagName === 'iframe' || tagName === 'form'))) {
+          createIndicator(element, 'hidden-element', '👁️');
+        }
+      }
+    });
   }
 }
 
@@ -396,12 +547,12 @@ async function handleMouseOver(event) {
     }
     
     // Check for hidden elements (only for specific cases)
-    if (settings.detectHidden && isHidden(target)) {
+    if (settings.detectHidden) {
       const tagName = target.tagName.toLowerCase();
-      // Only show for tracking pixels, hidden iframes, and hidden forms
-      if ((tagName === 'img' && target.width === 1 && target.height === 1) ||
-          (tagName === 'iframe') ||
-          (tagName === 'form')) {
+      const isTrackingPixel = tagName === 'img' && target.width === 1 && target.height === 1;
+      const isActuallyHidden = isHidden(target);
+      
+      if (isTrackingPixel || (isActuallyHidden && (tagName === 'iframe' || tagName === 'form'))) {
         const content = analyzeHiddenElement(target);
         showTooltip(target, content, 'hidden-element');
         return;
@@ -451,26 +602,61 @@ function startObserving() {
     });
   }
   
+  // Scan page for persistent indicators
+  scanPageForIndicators();
+  
   // Add event listeners
   document.addEventListener('mouseover', handleMouseOver, true);
   document.addEventListener('mouseout', handleMouseOut, true);
   
   // Observe DOM changes
   const observer = new MutationObserver(debounce(() => {
-    // Could scan for new elements here if needed
+    // Rescan for new elements
+    scanPageForIndicators();
   }, CONFIG.SCAN_THROTTLE));
   
   observer.observe(document.body, {
     childList: true,
     subtree: true,
   });
+  
+  // Reposition indicators on scroll/resize
+  window.addEventListener('scroll', debounce(() => {
+    activeIndicators.forEach(element => {
+      if (element._capweIndicator) {
+        positionIndicator(element._capweIndicator, element);
+      }
+    });
+  }, 100));
+  
+  window.addEventListener('resize', debounce(() => {
+    activeIndicators.forEach(element => {
+      if (element._capweIndicator) {
+        positionIndicator(element._capweIndicator, element);
+      }
+    });
+  }, 100));
 }
 
 // Listen for settings updates
 if (typeof chrome !== 'undefined' && chrome.runtime) {
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === 'updateSettings') {
+      const oldShowIndicators = settings.showIndicators;
       settings = { ...settings, ...message.settings };
+      
+      // Update indicators if setting changed
+      if (oldShowIndicators !== settings.showIndicators) {
+        if (settings.showIndicators) {
+          scanPageForIndicators();
+        } else {
+          clearAllIndicators();
+        }
+      } else if (settings.showIndicators) {
+        // Rescan if other settings changed
+        scanPageForIndicators();
+      }
+      
       sendResponse({ success: true });
     }
     

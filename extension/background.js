@@ -4,6 +4,7 @@
 // Default settings
 const DEFAULT_SETTINGS = {
   enabled: true,
+  showIndicators: true,
   detectAds: true,
   detectLinks: true,
   detectForms: true,

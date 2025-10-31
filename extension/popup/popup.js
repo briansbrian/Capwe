@@ -6,6 +6,7 @@ function loadSettings() {
   chrome.storage.sync.get(['settings'], (result) => {
     const settings = result.settings || {
       enabled: true,
+      showIndicators: true,
       detectAds: true,
       detectLinks: true,
       detectForms: true,
@@ -16,6 +17,7 @@ function loadSettings() {
     
     // Update checkboxes
     document.getElementById('enabled').checked = settings.enabled;
+    document.getElementById('showIndicators').checked = settings.showIndicators;
     document.getElementById('detectAds').checked = settings.detectAds;
     document.getElementById('detectLinks').checked = settings.detectLinks;
     document.getElementById('detectForms').checked = settings.detectForms;
@@ -29,6 +31,7 @@ function loadSettings() {
 function saveSettings() {
   const settings = {
     enabled: document.getElementById('enabled').checked,
+    showIndicators: document.getElementById('showIndicators').checked,
     detectAds: document.getElementById('detectAds').checked,
     detectLinks: document.getElementById('detectLinks').checked,
     detectForms: document.getElementById('detectForms').checked,
