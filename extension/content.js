@@ -107,8 +107,10 @@ const INDICATOR_THEMES = {
 
 // Ad detection patterns
 const AD_PATTERNS = {
-  classes: /\b(ad|ads|advertisement|sponsored|promo|banner|advert|adspace|google_ad|adsense)\b/i,
-  ids: /\b(ad|ads|advertisement|sponsored|promo|banner)\b/i,
+  // Use more specific patterns to avoid false positives
+  // \b = word boundary ensures we match whole words/segments
+  classes: /\b(advertisement|sponsored|advert|adspace|google_ad|adsense|ad-banner|ad-container|ad-slot|ads-wrapper)\b/i,
+  ids: /\b(advertisement|sponsored|ad-banner|ad-container|ad-slot|ad-unit|ads-wrapper)\b/i,
   adNetworks: [
     'doubleclick.net',
     'googlesyndication.com',
@@ -321,7 +323,7 @@ function showTooltip(element, content, type) {
       tooltip.innerHTML = content;
       tooltip.className = `capwe-tooltip ${type}`;
       
-      // Position tooltip
+      // Position tooltip below the indicator (or element if no indicator)
       const rect = element.getBoundingClientRect();
       
       // Check if element is still visible
@@ -329,22 +331,32 @@ function showTooltip(element, content, type) {
         return;
       }
       
+      // Make tooltip visible temporarily to get its dimensions
+      tooltip.style.visibility = 'hidden';
+      tooltip.style.display = 'block';
       const tooltipRect = tooltip.getBoundingClientRect();
+      tooltip.style.visibility = '';
+      tooltip.style.display = '';
       
-      let top = rect.top + window.scrollY - tooltipRect.height - 10;
-      let left = rect.left + window.scrollX;
+      // Position tooltip directly below the indicator, centered horizontally
+      // Note: tooltip uses position: fixed, so use viewport coordinates (no window.scrollY)
+      let top = rect.bottom + 8;
+      let left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
       
-      // Adjust if tooltip goes off screen
-      if (top < window.scrollY) {
-        top = rect.bottom + window.scrollY + 10;
+      // Adjust if tooltip goes off the right edge of screen
+      if (left + tooltipRect.width > window.innerWidth - 10) {
+        left = window.innerWidth - tooltipRect.width - 10;
       }
       
-      if (left + tooltipRect.width > window.innerWidth + window.scrollX) {
-        left = window.innerWidth + window.scrollX - tooltipRect.width - 10;
-      }
-      
-      // Ensure tooltip stays within viewport
+      // Adjust if tooltip goes off the left edge
       if (left < 10) left = 10;
+      
+      // If tooltip would go below viewport, position above indicator instead
+      if (top + tooltipRect.height > window.innerHeight - 10) {
+        top = rect.top - tooltipRect.height - 8;
+      }
+      
+      // Ensure top is not negative
       if (top < 10) top = 10;
       
       tooltip.style.top = `${top}px`;
@@ -400,7 +412,7 @@ function createIndicator(element, type, icon) {
   // Add hover handlers to show detailed tooltip
   indicator.addEventListener('mouseenter', (e) => {
     e.stopPropagation();
-    showDetailedTooltip(element, type);
+    showDetailedTooltip(element, type, indicator);
   });
   
   indicator.addEventListener('mouseleave', (e) => {
@@ -411,7 +423,7 @@ function createIndicator(element, type, icon) {
   // Add click handler as backup
   indicator.addEventListener('click', (e) => {
     e.stopPropagation();
-    showDetailedTooltip(element, type);
+    showDetailedTooltip(element, type, indicator);
   });
 }
 
@@ -511,7 +523,7 @@ function getIndicatorTitle(type) {
   }
 }
 
-async function showDetailedTooltip(element, type) {
+async function showDetailedTooltip(element, type, indicator) {
   let content = '';
   
   try {
@@ -526,7 +538,9 @@ async function showDetailedTooltip(element, type) {
     }
     
     if (content) {
-      showTooltip(element, content, type);
+      // Always use indicator position if provided, otherwise fall back to element
+      const positionElement = indicator ? indicator : element;
+      showTooltip(positionElement, content, type);
     }
   } catch (error) {
     console.error('Error showing detailed tooltip:', error);
@@ -614,9 +628,9 @@ function isAd(element) {
     return true;
   }
   
-  // Check data attributes
+  // Check data attributes (look for ad-related attribute names, not just values)
   for (const attr of element.attributes) {
-    if (attr.name.startsWith('data-') && /ad|advertisement|sponsored/i.test(attr.value)) {
+    if (attr.name.startsWith('data-') && /data-(ad|advertisement|sponsored)/i.test(attr.name)) {
       return true;
     }
   }
@@ -632,14 +646,25 @@ function isAd(element) {
 
 function getAdInfo(element) {
   let network = 'Unknown';
+  let adUrl = '';
   
   if (element.tagName === 'IFRAME') {
     const src = element.src || element.getAttribute('data-src') || '';
+    adUrl = src;
     const matchedNetwork = AD_PATTERNS.adNetworks.find(net => src.includes(net));
     if (matchedNetwork) {
       network = matchedNetwork;
     }
+  } else {
+    // Check for ad container with links
+    const adLink = element.querySelector('a[href]');
+    if (adLink) {
+      adUrl = adLink.href;
+    }
   }
+  
+  // Truncate URL if too long
+  const displayUrl = adUrl.length > 150 ? adUrl.substring(0, 150) + '...' : adUrl;
   
   return `
     <div class="capwe-tooltip-header">
@@ -648,8 +673,10 @@ function getAdInfo(element) {
     </div>
     <div class="capwe-tooltip-content">
       <div class="capwe-tooltip-label">Ad Network:</div>
-      <div>${sanitizeForHtml(network, 50)}</div>
-      <div class="capwe-tooltip-label" style="margin-top: 8px;">Privacy Notice:</div>
+      <div style="margin-bottom: 8px;">${sanitizeForHtml(network, 50)}</div>
+      ${adUrl ? `<div class="capwe-tooltip-label">Ad URL:</div>
+      <div style="word-break: break-all; font-family: monospace; font-size: 11px; background: rgba(0,0,0,0.1); padding: 4px 8px; border-radius: 4px; margin-bottom: 8px;">${sanitizeForHtml(displayUrl, 200)}</div>` : ''}
+      <div class="capwe-tooltip-label">Privacy Notice:</div>
       <div>This content may track your browsing activity</div>
     </div>
   `;
@@ -671,16 +698,32 @@ function analyzeLink(anchor) {
     const icon = isDownload ? '⬇️' : (isExternal ? '🔗' : '🏠');
     const type = isDownload ? 'Download' : (isExternal ? 'External Link' : 'Internal Link');
     
+    // Prepare full URL display
+    const displayUrl = href.length > 150 ? href.substring(0, 150) + '...' : href;
+    
     return `
       <div class="capwe-tooltip-header">
         <span class="capwe-tooltip-icon">${icon}</span>
         <span>${type}</span>
       </div>
       <div class="capwe-tooltip-content">
-        <div class="capwe-tooltip-label">Destination:</div>
-        <div style="word-break: break-all;">${sanitizeForHtml(url.hostname + url.pathname, 100)}</div>
-        ${!isSecure ? '<div style="margin-top: 8px; color: #fbbf24;">⚠️ Not HTTPS</div>' : ''}
-        ${isExternal ? '<div style="margin-top: 4px;">Leaving current site</div>' : ''}
+        <div class="capwe-tooltip-label">Link Text:</div>
+        <div style="margin-bottom: 8px;">${text || '(no text)'}</div>
+        
+        <div class="capwe-tooltip-label">Full URL:</div>
+        <div style="word-break: break-all; font-family: monospace; font-size: 11px; background: rgba(0,0,0,0.1); padding: 4px 8px; border-radius: 4px; margin-bottom: 8px;">${sanitizeForHtml(displayUrl, 200)}</div>
+        
+        <div class="capwe-tooltip-label">Domain:</div>
+        <div style="margin-bottom: 4px;">${sanitizeForHtml(url.hostname, 100)}</div>
+        
+        ${url.pathname !== '/' ? `<div class="capwe-tooltip-label">Path:</div>
+        <div style="margin-bottom: 4px; word-break: break-all;">${sanitizeForHtml(url.pathname, 100)}</div>` : ''}
+        
+        ${url.search ? `<div class="capwe-tooltip-label">Parameters:</div>
+        <div style="margin-bottom: 4px; word-break: break-all; font-size: 11px;">${sanitizeForHtml(url.search, 100)}</div>` : ''}
+        
+        ${!isSecure ? '<div style="margin-top: 8px; color: #fbbf24;">⚠️ Not HTTPS</div>' : '<div style="margin-top: 8px; color: #10b981;">✓ Secure (HTTPS)</div>'}
+        ${isExternal ? '<div style="margin-top: 4px; color: #f59e0b;">⚠️ Leaving current site</div>' : ''}
       </div>
     `;
   } catch {
@@ -782,13 +825,12 @@ function isHidden(element) {
   const style = window.getComputedStyle(element);
   const rect = element.getBoundingClientRect();
   
+  // More conservative hidden detection to reduce false positives
   return (
     style.display === 'none' ||
     style.visibility === 'hidden' ||
-    style.opacity === '0' ||
-    rect.width === 0 ||
-    rect.height === 0 ||
-    element.offsetParent === null
+    (parseFloat(style.opacity) === 0 && style.pointerEvents === 'none') || // Only if truly non-interactive
+    (rect.width === 0 && rect.height === 0 && element.offsetParent === null) // All three conditions
   );
 }
 
