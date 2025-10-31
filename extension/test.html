@@ -200,6 +200,7 @@
       <li>Hover over different elements to see tooltips</li>
       <li>Check the extension popup to toggle features on/off</li>
       <li>Enable AI features if available (Chrome 128+)</li>
+      <li>Configure Look Out criteria to test content monitoring</li>
     </ol>
     
     <h3>Expected Results:</h3>
@@ -209,7 +210,57 @@
       <li><strong>Forms:</strong> Blue border with security info (HTTP forms should show warnings)</li>
       <li><strong>Hidden Elements:</strong> Gray border tooltip when detected</li>
       <li><strong>AI Analysis:</strong> Additional insights when AI is enabled</li>
+      <li><strong>Look Out Matches:</strong> Green pulsing border for matching content</li>
     </ul>
+  </div>
+
+  <!-- Test Section 6: Look Out Test Cases -->
+  <div class="section">
+    <h2>6. Look Out Test Cases</h2>
+    
+    <h3>Job Postings</h3>
+    <article class="job-listing">
+      <h4>Senior Software Engineer - Remote</h4>
+      <p><strong>Location:</strong> United States (Remote)</p>
+      <p><strong>Salary:</strong> $150,000 - $180,000</p>
+      <p>We're looking for a senior software engineer with Python experience...</p>
+      <p><strong>Keywords:</strong> Python, Remote, Senior</p>
+    </article>
+    
+    <article class="job-listing">
+      <h4>Junior Developer - On-site</h4>
+      <p><strong>Location:</strong> New York City (On-site)</p>
+      <p><strong>Salary:</strong> $60,000 - $75,000</p>
+      <p>Entry-level position for a junior developer...</p>
+      <p><strong>Keywords:</strong> Junior, On-site</p>
+    </article>
+    
+    <h3>Product Listings</h3>
+    <div class="product">
+      <h4>Gaming Laptop - AMD Ryzen 9</h4>
+      <p><strong>Price:</strong> $1,499</p>
+      <p>32GB RAM, RTX 4070, 1TB SSD</p>
+      <p><strong>Keywords:</strong> Laptop, AMD Ryzen 9, 32GB RAM</p>
+    </div>
+    
+    <div class="product">
+      <h4>Refurbished Desktop</h4>
+      <p><strong>Price:</strong> $399 (Refurbished)</p>
+      <p>Basic desktop computer for office work</p>
+      <p><strong>Keywords:</strong> Desktop, Refurbished</p>
+    </div>
+    
+    <p style="margin-top: 20px;">
+      <strong>To test Look Out:</strong>
+      <ol style="margin-top: 10px;">
+        <li>Click the extension icon</li>
+        <li>Click "Configure Look Out Criteria"</li>
+        <li>Add criteria (e.g., Job: "senior, software, engineer, remote", exclude "junior")</li>
+        <li>Return to this page</li>
+        <li>The matching job posting should be highlighted with a green pulsing border</li>
+        <li>Ctrl+Click on the highlighted element to see match details</li>
+      </ol>
+    </p>
   </div>
 </body>
 </html>

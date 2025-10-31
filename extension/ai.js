@@ -442,4 +442,5 @@ window.CapweAI = {
   classifyAd,
   cleanup: cleanupAI,
   getMetrics: () => aiMonitor.getMetrics(),
+  getSession: getAISession,
 };

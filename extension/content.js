@@ -424,6 +424,15 @@ function startObserving() {
     });
   }
   
+  // Initialize Look Out if enabled
+  if (settings.lookOutEnabled && window.CapweLookOut) {
+    window.CapweLookOut.initLookOut().then(() => {
+      console.log('Capwe Look Out initialized');
+    }).catch((error) => {
+      console.error('Failed to initialize Look Out:', error);
+    });
+  }
+  
   // Add event listeners
   document.addEventListener('mouseover', handleMouseOver, true);
   document.addEventListener('mouseout', handleMouseOut, true);
@@ -445,6 +454,14 @@ if (typeof chrome !== 'undefined' && chrome.runtime) {
     if (message.type === 'updateSettings') {
       settings = { ...settings, ...message.settings };
       sendResponse({ success: true });
+    }
+    
+    if (message.type === 'rescanLookOut') {
+      if (window.CapweLookOut) {
+        window.CapweLookOut.scanForMatches().then(() => {
+          sendResponse({ success: true });
+        });
+      }
     }
   });
 }
