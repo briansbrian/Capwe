@@ -1,0 +1,30 @@
+{
+  "name": "capwe",
+  "version": "1.0.0",
+  "description": "An accessibility tool for transparent browsing",
+  "scripts": {
+    "test": "echo \"Open extension/test.html in Chrome to test\"",
+    "lint": "echo \"No linter configured - using browser standards\"",
+    "docs": "echo \"See DEVELOPMENT.md for documentation\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/briansbrian/Capwe.git"
+  },
+  "keywords": [
+    "chrome-extension",
+    "accessibility",
+    "transparency",
+    "privacy",
+    "ad-detection",
+    "ai",
+    "security"
+  ],
+  "author": "",
+  "license": "SEE LICENSE IN LICENSE",
+  "bugs": {
+    "url": "https://github.com/briansbrian/Capwe/issues"
+  },
+  "homepage": "https://github.com/briansbrian/Capwe#readme",
+  "devDependencies": {}
+}

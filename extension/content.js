@@ -80,45 +80,63 @@ function createTooltip() {
 }
 
 function showTooltip(element, content, type) {
+  if (!element || !content) return;
+  
   clearTimeout(tooltipTimeout);
   clearTimeout(autoHideTimeout);
   
   tooltipTimeout = setTimeout(() => {
-    if (!tooltip) {
-      tooltip = createTooltip();
+    try {
+      if (!tooltip) {
+        tooltip = createTooltip();
+      }
+      
+      tooltip.innerHTML = content;
+      tooltip.className = `capwe-tooltip ${type}`;
+      
+      // Position tooltip
+      const rect = element.getBoundingClientRect();
+      
+      // Check if element is still visible
+      if (rect.width === 0 && rect.height === 0) {
+        return;
+      }
+      
+      const tooltipRect = tooltip.getBoundingClientRect();
+      
+      let top = rect.top + window.scrollY - tooltipRect.height - 10;
+      let left = rect.left + window.scrollX;
+      
+      // Adjust if tooltip goes off screen
+      if (top < window.scrollY) {
+        top = rect.bottom + window.scrollY + 10;
+      }
+      
+      if (left + tooltipRect.width > window.innerWidth + window.scrollX) {
+        left = window.innerWidth + window.scrollX - tooltipRect.width - 10;
+      }
+      
+      // Ensure tooltip stays within viewport
+      if (left < 10) left = 10;
+      if (top < 10) top = 10;
+      
+      tooltip.style.top = `${top}px`;
+      tooltip.style.left = `${left}px`;
+      
+      // Make visible
+      setTimeout(() => {
+        if (tooltip) {
+          tooltip.classList.add('visible');
+        }
+      }, 10);
+      
+      // Auto-hide after delay
+      autoHideTimeout = setTimeout(() => {
+        hideTooltip();
+      }, CONFIG.AUTO_HIDE_DELAY);
+    } catch (error) {
+      console.error('Error showing tooltip:', error);
     }
-    
-    tooltip.innerHTML = content;
-    tooltip.className = `capwe-tooltip ${type}`;
-    
-    // Position tooltip
-    const rect = element.getBoundingClientRect();
-    const tooltipRect = tooltip.getBoundingClientRect();
-    
-    let top = rect.top + window.scrollY - tooltipRect.height - 10;
-    let left = rect.left + window.scrollX;
-    
-    // Adjust if tooltip goes off screen
-    if (top < window.scrollY) {
-      top = rect.bottom + window.scrollY + 10;
-    }
-    
-    if (left + tooltipRect.width > window.innerWidth + window.scrollX) {
-      left = window.innerWidth + window.scrollX - tooltipRect.width - 10;
-    }
-    
-    tooltip.style.top = `${top}px`;
-    tooltip.style.left = `${left}px`;
-    
-    // Make visible
-    setTimeout(() => {
-      tooltip.classList.add('visible');
-    }, 10);
-    
-    // Auto-hide after delay
-    autoHideTimeout = setTimeout(() => {
-      hideTooltip();
-    }, CONFIG.AUTO_HIDE_DELAY);
   }, CONFIG.TOOLTIP_DELAY);
 }
 
@@ -351,46 +369,50 @@ function analyzeHiddenElement(element) {
 async function handleMouseOver(event) {
   if (!settings.enabled) return;
   
-  const target = event.target;
-  
-  // Skip if tooltip or already processed
-  if (target.classList.contains('capwe-tooltip')) return;
-  
-  // Check for ads
-  if (settings.detectAds && isAd(target)) {
-    const content = getAdInfo(target);
-    showTooltip(target, content, 'ad');
-    return;
-  }
-  
-  // Check for links
-  if (settings.detectLinks && target.tagName === 'A' && target.href) {
-    const content = analyzeLink(target);
-    if (content) {
-      const type = target.href.startsWith(window.location.origin) ? 'link-internal' : 'link-external';
-      showTooltip(target, content, type);
+  try {
+    const target = event.target;
+    
+    // Skip if tooltip or already processed
+    if (!target || target.classList?.contains('capwe-tooltip')) return;
+    
+    // Check for ads
+    if (settings.detectAds && isAd(target)) {
+      const content = getAdInfo(target);
+      showTooltip(target, content, 'ad');
       return;
     }
-  }
-  
-  // Check for forms
-  if (settings.detectForms && target.tagName === 'FORM') {
-    const content = await analyzeForm(target);
-    showTooltip(target, content, 'form');
-    return;
-  }
-  
-  // Check for hidden elements (only for specific cases)
-  if (settings.detectHidden && isHidden(target)) {
-    const tagName = target.tagName.toLowerCase();
-    // Only show for tracking pixels, hidden iframes, and hidden forms
-    if ((tagName === 'img' && target.width === 1 && target.height === 1) ||
-        (tagName === 'iframe') ||
-        (tagName === 'form')) {
-      const content = analyzeHiddenElement(target);
-      showTooltip(target, content, 'hidden-element');
+    
+    // Check for links
+    if (settings.detectLinks && target.tagName === 'A' && target.href) {
+      const content = analyzeLink(target);
+      if (content) {
+        const type = target.href.startsWith(window.location.origin) ? 'link-internal' : 'link-external';
+        showTooltip(target, content, type);
+        return;
+      }
+    }
+    
+    // Check for forms
+    if (settings.detectForms && target.tagName === 'FORM') {
+      const content = await analyzeForm(target);
+      showTooltip(target, content, 'form');
       return;
     }
+    
+    // Check for hidden elements (only for specific cases)
+    if (settings.detectHidden && isHidden(target)) {
+      const tagName = target.tagName.toLowerCase();
+      // Only show for tracking pixels, hidden iframes, and hidden forms
+      if ((tagName === 'img' && target.width === 1 && target.height === 1) ||
+          (tagName === 'iframe') ||
+          (tagName === 'form')) {
+        const content = analyzeHiddenElement(target);
+        showTooltip(target, content, 'hidden-element');
+        return;
+      }
+    }
+  } catch (error) {
+    console.error('Error in handleMouseOver:', error);
   }
 }
 
