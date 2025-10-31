@@ -641,9 +641,10 @@ function sanitizeForPrompt(text, maxLength = 500) {
   if (!text) return '';
   
   // Remove or escape potential prompt injection patterns
+  // Only allow alphanumeric, spaces, and basic punctuation
   return text
     .substring(0, maxLength)
-    .replace(/[^\w\s\-.,!?@#$%&()]/g, '') // Remove special chars
+    .replace(/[^\w\s\-.,!?]/g, '') // Strict character filtering
     .trim();
 }
 
@@ -658,14 +659,24 @@ function sanitizeURL(url) {
   }
 }
 
-// Example: Secure form analysis
+// Example: Secure form analysis with parameterized prompt template
 async function analyzeFormSecurity(formElement, aiSession) {
   const action = sanitizeURL(formElement.action);
   const sensitiveInputs = Array.from(formElement.querySelectorAll('input'))
     .map(input => sanitizeForPrompt(getInputLabel(input), 50))
     .filter(label => /credit card|password|ssn/i.test(label));
   
-  const prompt = `Analyze security risk: Form with fields [${sensitiveInputs.join(', ')}] submits to URL: ${action}`;
+  // Use template with clearly separated user input
+  // This makes it harder for injection to break out of context
+  const prompt = [
+    'Analyze the security risk of this form:',
+    'Fields:',
+    sensitiveInputs.map(field => `- ${field}`).join('\n'),
+    'Submission URL:',
+    action,
+    '',
+    'Provide a concise security warning if sensitive data will be transmitted insecurely.'
+  ].join('\n');
   
   const result = await aiSession.prompt(prompt);
   return result;
@@ -680,7 +691,7 @@ const AI_LIMITS = {
   MAX_TEXT_LENGTH: 500,
   MAX_URL_LENGTH: 200,
   MAX_LABEL_LENGTH: 50,
-  ALLOWED_CHARS: /^[\w\s\-.,!?@#$%&()]+$/
+  ALLOWED_CHARS: /[^\w\s\-.,!?]/g // Only allow safe characters
 };
 
 function validateInput(text, type = 'text') {
@@ -696,7 +707,8 @@ function validateInput(text, type = 'text') {
     text = text.substring(0, maxLength);
   }
   
-  return text.replace(/[^\w\s\-.,!?@#$%&()]/g, '');
+  // Remove any characters not in the allowlist
+  return text.replace(AI_LIMITS.ALLOWED_CHARS, '');
 }
 ```
 
