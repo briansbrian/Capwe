@@ -438,22 +438,66 @@ function applyThemeToIndicator(indicator, type) {
 function positionIndicator(indicator, element) {
   const rect = element.getBoundingClientRect();
   
-  // For absolute positioning, use document coordinates
-  let top = rect.top + window.scrollY - 8;
-  let left = rect.right + window.scrollX - 8;
+  // Check if element or any parent has fixed/sticky positioning
+  const isFixedOrSticky = isElementFixedOrSticky(element);
   
-  // Adjust if it goes off screen (right edge)
-  if (left + 40 > document.documentElement.scrollWidth) { // Approximate indicator width
-    left = rect.left + window.scrollX - 40 + 8;
-  }
+  let top, left;
   
-  // Adjust if too close to top
-  if (top < window.scrollY) {
-    top = rect.bottom + window.scrollY - 8;
+  if (isFixedOrSticky) {
+    // Use viewport coordinates only (no scroll offset)
+    top = rect.top - 4;
+    left = rect.right - 4;
+    
+    // Set indicator to fixed positioning to match the element
+    indicator.style.position = 'fixed';
+    
+    // Adjust if it goes off screen (right edge)
+    if (left + 20 > window.innerWidth) {
+      left = rect.left - 20 + 4;
+    }
+    
+    // Adjust if too close to top
+    if (top < 0) {
+      top = rect.bottom - 4;
+    }
+  } else {
+    // Use document coordinates for normal flow elements
+    top = rect.top + window.scrollY - 4;
+    left = rect.right + window.scrollX - 4;
+    
+    // Ensure indicator uses absolute positioning
+    indicator.style.position = 'absolute';
+    
+    // Adjust if it goes off screen (right edge)
+    if (left + 20 > document.documentElement.scrollWidth) {
+      left = rect.left + window.scrollX - 20 + 4;
+    }
+    
+    // Adjust if too close to top
+    if (top < window.scrollY) {
+      top = rect.bottom + window.scrollY - 4;
+    }
   }
   
   indicator.style.top = `${top}px`;
   indicator.style.left = `${left}px`;
+}
+
+function isElementFixedOrSticky(element) {
+  // Check the element and its ancestors for fixed/sticky positioning
+  let current = element;
+  
+  while (current && current !== document.body && current !== document.documentElement) {
+    const position = window.getComputedStyle(current).position;
+    
+    if (position === 'fixed' || position === 'sticky') {
+      return true;
+    }
+    
+    current = current.parentElement;
+  }
+  
+  return false;
 }
 
 function getIndicatorTitle(type) {
