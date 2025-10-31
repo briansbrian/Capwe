@@ -39,35 +39,25 @@ let settings = {
   lookOutEnabled: false,
 };
 
-// Utility functions
-function debounce(func, wait) {
-  let timeout;
-  return function executedFunction(...args) {
-    const later = () => {
+// Use shared utilities
+const { sanitizeText, sanitizeURL, debounce } = window.CapweUtils || {
+  sanitizeText: (text, maxLength = 500) => text?.substring(0, maxLength).replace(/[^\w\s\-.,!?@/:]/g, '').trim() || '',
+  sanitizeURL: (url) => {
+    try {
+      const parsed = new URL(url);
+      return `${parsed.origin}${parsed.pathname}`;
+    } catch {
+      return '[Invalid URL]';
+    }
+  },
+  debounce: (func, wait) => {
+    let timeout;
+    return function(...args) {
       clearTimeout(timeout);
-      func(...args);
+      timeout = setTimeout(() => func(...args), wait);
     };
-    clearTimeout(timeout);
-    timeout = setTimeout(later, wait);
-  };
-}
-
-function sanitizeText(text, maxLength = 500) {
-  if (!text) return '';
-  return text
-    .substring(0, maxLength)
-    .replace(/[^\w\s\-.,!?@/:]/g, '')
-    .trim();
-}
-
-function sanitizeURL(url) {
-  try {
-    const parsed = new URL(url);
-    return `${parsed.origin}${parsed.pathname}`;
-  } catch {
-    return '[Invalid URL]';
-  }
-}
+  },
+};
 
 // Tooltip management
 function createTooltip() {

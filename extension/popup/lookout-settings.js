@@ -1,6 +1,16 @@
 // Look Out Settings UI Script
 'use strict';
 
+// Utility function for generating unique IDs
+function generateId(prefix = 'id') {
+  // Try crypto.randomUUID first (more secure)
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return `${prefix}-${crypto.randomUUID()}`;
+  }
+  // Fallback to timestamp + random
+  return `${prefix}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+}
+
 const typeSelect = document.getElementById('type');
 const keywordsInput = document.getElementById('keywords');
 const excludeKeywordsInput = document.getElementById('excludeKeywords');
@@ -133,7 +143,7 @@ async function addNewCriteria() {
   const result = await chrome.storage.sync.get(['lookOutConfig']);
   const config = result.lookOutConfig || { enabled: true, criteria: [] };
   
-  criteria.id = `criteria-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  criteria.id = generateId('criteria');
   config.criteria.push(criteria);
   config.enabled = true; // Enable Look Out when first criteria is added
   

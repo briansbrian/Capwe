@@ -147,6 +147,18 @@ body {
   line-height: 1.4;
 }
 
+.link-secondary {
+  display: inline-block;
+  margin-top: 8px;
+  color: #4285F4;
+  text-decoration: none;
+  font-size: 12px;
+}
+
+.link-secondary:hover {
+  text-decoration: underline;
+}
+
 .saved-indicator {
   position: absolute;
   top: 50%;

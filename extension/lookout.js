@@ -8,6 +8,14 @@ const DEFAULT_LOOK_OUT_CONFIG = {
   criteria: [],
 };
 
+// Use shared utility for ID generation or fallback
+const generateId = window.CapweUtils?.generateId || function(prefix = 'id') {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return `${prefix}-${crypto.randomUUID()}`;
+  }
+  return `${prefix}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+};
+
 // Current active criteria
 let lookOutConfig = DEFAULT_LOOK_OUT_CONFIG;
 
@@ -47,7 +55,7 @@ async function saveLookOutConfig(config) {
 // Add new criteria
 async function addCriteria(criteria) {
   const config = await getLookOutConfig();
-  criteria.id = `criteria-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  criteria.id = generateId('criteria');
   config.criteria.push(criteria);
   await saveLookOutConfig(config);
   return criteria.id;
@@ -269,7 +277,7 @@ async function scanForMatches() {
       
       if (matchResult && matchResult.relevance >= 70) {
         const match = {
-          id: `match-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          id: generateId('match'),
           element: candidate,
           criteria: criteria,
           ...matchResult,

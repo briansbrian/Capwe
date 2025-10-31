@@ -101,24 +101,25 @@ class AIResourceMonitor {
 
 const aiMonitor = new AIResourceMonitor();
 
-// Input sanitization
-function sanitizeForPrompt(text, maxLength = AI_CONFIG.MAX_TEXT_LENGTH) {
-  if (!text) return '';
-  
-  return text
-    .substring(0, maxLength)
-    .replace(AI_CONFIG.ALLOWED_CHARS, '')
-    .trim();
-}
+// Use shared utilities or fallback
+const { sanitizeText: sanitizeForPrompt, sanitizeURL: sanitizeURLUtil } = window.CapweUtils || {
+  sanitizeText: (text, maxLength = AI_CONFIG.MAX_TEXT_LENGTH) => {
+    if (!text) return '';
+    return text.substring(0, maxLength).replace(AI_CONFIG.ALLOWED_CHARS, '').trim();
+  },
+  sanitizeURL: (url, maxLength = AI_CONFIG.MAX_URL_LENGTH) => {
+    try {
+      const parsed = new URL(url);
+      return `${parsed.origin}${parsed.pathname}`.substring(0, maxLength);
+    } catch {
+      return '[Invalid URL]';
+    }
+  },
+};
 
+// Wrapper for sanitizeURL with AI-specific max length
 function sanitizeURL(url, maxLength = AI_CONFIG.MAX_URL_LENGTH) {
-  try {
-    const parsed = new URL(url);
-    const result = `${parsed.origin}${parsed.pathname}`;
-    return result.substring(0, maxLength);
-  } catch {
-    return '[Invalid URL]';
-  }
+  return sanitizeURLUtil(url, maxLength);
 }
 
 // AI Availability check
