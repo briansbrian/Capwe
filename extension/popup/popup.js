@@ -13,6 +13,10 @@ function loadSettings() {
       detectHidden: true,
       aiEnabled: false,
       lookOutEnabled: false,
+      themeName: 'default',
+      themeMode: 'auto',
+      customThemes: {},
+      siteThemes: {},
     };
     
     // Update checkboxes
@@ -24,6 +28,10 @@ function loadSettings() {
     document.getElementById('detectHidden').checked = settings.detectHidden;
     document.getElementById('aiEnabled').checked = settings.aiEnabled;
     document.getElementById('lookOutEnabled').checked = settings.lookOutEnabled;
+    
+    // Update theme selects
+    document.getElementById('themeName').value = settings.themeName || 'default';
+    document.getElementById('themeMode').value = settings.themeMode || 'auto';
   });
 }
 
@@ -38,6 +46,8 @@ function saveSettings() {
     detectHidden: document.getElementById('detectHidden').checked,
     aiEnabled: document.getElementById('aiEnabled').checked,
     lookOutEnabled: document.getElementById('lookOutEnabled').checked,
+    themeName: document.getElementById('themeName').value,
+    themeMode: document.getElementById('themeMode').value,
   };
   
   chrome.storage.sync.set({ settings }, () => {
@@ -75,4 +85,8 @@ document.addEventListener('DOMContentLoaded', () => {
   checkboxes.forEach((checkbox) => {
     checkbox.addEventListener('change', saveSettings);
   });
+  
+  // Add change listeners to theme selects
+  document.getElementById('themeName').addEventListener('change', saveSettings);
+  document.getElementById('themeMode').addEventListener('change', saveSettings);
 });

@@ -12,6 +12,99 @@ const CONFIG = {
   SCAN_THROTTLE: 300,
 };
 
+// Theme definitions
+const INDICATOR_THEMES = {
+  default: {
+    name: "Default",
+    light: {
+      ad: { bg: '#7f1d1d', text: '#ffffff', border: '#ef4444' },
+      linkExternal: { bg: '#78350f', text: '#ffffff', border: '#f59e0b' },
+      linkInternal: { bg: '#064e3b', text: '#ffffff', border: '#10b981' },
+      form: { bg: '#1e3a8a', text: '#ffffff', border: '#3b82f6' },
+      hidden: { bg: '#374151', text: '#ffffff', border: '#9ca3af' }
+    },
+    dark: {
+      ad: { bg: '#ef4444', text: '#ffffff', border: '#ffffff' },
+      linkExternal: { bg: '#f59e0b', text: '#ffffff', border: '#ffffff' },
+      linkInternal: { bg: '#10b981', text: '#ffffff', border: '#ffffff' },
+      form: { bg: '#3b82f6', text: '#ffffff', border: '#ffffff' },
+      hidden: { bg: '#9ca3af', text: '#ffffff', border: '#ffffff' }
+    }
+  },
+  
+  minimal: {
+    name: "Minimal",
+    light: {
+      ad: { bg: '#ffffff', text: '#dc2626', border: '#dc2626' },
+      linkExternal: { bg: '#ffffff', text: '#ea580c', border: '#ea580c' },
+      linkInternal: { bg: '#ffffff', text: '#059669', border: '#059669' },
+      form: { bg: '#ffffff', text: '#2563eb', border: '#2563eb' },
+      hidden: { bg: '#ffffff', text: '#6b7280', border: '#6b7280' }
+    },
+    dark: {
+      ad: { bg: '#1f2937', text: '#fca5a5', border: '#ef4444' },
+      linkExternal: { bg: '#1f2937', text: '#fdba74', border: '#f59e0b' },
+      linkInternal: { bg: '#1f2937', text: '#6ee7b7', border: '#10b981' },
+      form: { bg: '#1f2937', text: '#93c5fd', border: '#3b82f6' },
+      hidden: { bg: '#1f2937', text: '#d1d5db', border: '#9ca3af' }
+    }
+  },
+  
+  pastel: {
+    name: "Pastel",
+    light: {
+      ad: { bg: '#fecaca', text: '#991b1b', border: '#f87171' },
+      linkExternal: { bg: '#fed7aa', text: '#92400e', border: '#fb923c' },
+      linkInternal: { bg: '#d1fae5', text: '#065f46', border: '#34d399' },
+      form: { bg: '#bfdbfe', text: '#1e3a8a', border: '#60a5fa' },
+      hidden: { bg: '#e5e7eb', text: '#374151', border: '#9ca3af' }
+    },
+    dark: {
+      ad: { bg: '#7f1d1d', text: '#fecaca', border: '#f87171' },
+      linkExternal: { bg: '#78350f', text: '#fed7aa', border: '#fb923c' },
+      linkInternal: { bg: '#064e3b', text: '#d1fae5', border: '#34d399' },
+      form: { bg: '#1e3a8a', text: '#bfdbfe', border: '#60a5fa' },
+      hidden: { bg: '#374151', text: '#e5e7eb', border: '#9ca3af' }
+    }
+  },
+  
+  dark: {
+    name: "Dark",
+    light: {
+      ad: { bg: '#450a0a', text: '#fecaca', border: '#991b1b' },
+      linkExternal: { bg: '#431407', text: '#fed7aa', border: '#9a3412' },
+      linkInternal: { bg: '#022c22', text: '#d1fae5', border: '#065f46' },
+      form: { bg: '#172554', text: '#bfdbfe', border: '#1e40af' },
+      hidden: { bg: '#1f2937', text: '#e5e7eb', border: '#4b5563' }
+    },
+    dark: {
+      ad: { bg: '#fca5a5', text: '#450a0a', border: '#ef4444' },
+      linkExternal: { bg: '#fdba74', text: '#431407', border: '#f59e0b' },
+      linkInternal: { bg: '#6ee7b7', text: '#022c22', border: '#10b981' },
+      form: { bg: '#93c5fd', text: '#172554', border: '#3b82f6' },
+      hidden: { bg: '#d1d5db', text: '#1f2937', border: '#9ca3af' }
+    }
+  },
+  
+  neon: {
+    name: "Neon",
+    light: {
+      ad: { bg: '#18181b', text: '#ff0066', border: '#ff0066' },
+      linkExternal: { bg: '#18181b', text: '#ff9500', border: '#ff9500' },
+      linkInternal: { bg: '#18181b', text: '#00ff88', border: '#00ff88' },
+      form: { bg: '#18181b', text: '#00ccff', border: '#00ccff' },
+      hidden: { bg: '#18181b', text: '#888888', border: '#888888' }
+    },
+    dark: {
+      ad: { bg: '#ff0066', text: '#ffffff', border: '#ffffff' },
+      linkExternal: { bg: '#ff9500', text: '#ffffff', border: '#ffffff' },
+      linkInternal: { bg: '#00ff88', text: '#000000', border: '#ffffff' },
+      form: { bg: '#00ccff', text: '#000000', border: '#ffffff' },
+      hidden: { bg: '#888888', text: '#ffffff', border: '#ffffff' }
+    }
+  }
+};
+
 // Ad detection patterns
 const AD_PATTERNS = {
   classes: /\b(ad|ads|advertisement|sponsored|promo|banner|advert|adspace|google_ad|adsense)\b/i,
@@ -32,6 +125,9 @@ let tooltip = null;
 let tooltipTimeout = null;
 let autoHideTimeout = null;
 let activeIndicators = new Set();
+let currentTheme = 'default';
+let currentVariant = 'light';
+let pageBackgroundCache = null;
 let settings = {
   enabled: true,
   detectAds: true,
@@ -40,7 +136,11 @@ let settings = {
   detectHidden: true,
   aiEnabled: false,
   lookOutEnabled: false,
-  showIndicators: true, // New setting for persistent indicators
+  showIndicators: true,
+  themeMode: 'auto', // 'auto', 'light', 'dark', or specific theme name
+  themeName: 'default', // Current theme
+  customThemes: {}, // User-created themes
+  siteThemes: {}, // Per-site theme overrides
 };
 
 // Use shared utilities with fallbacks
@@ -86,6 +186,114 @@ function debounce(func, wait) {
     clearTimeout(timeout);
     timeout = setTimeout(later, wait);
   };
+}
+
+// Theme system functions
+function analyzePageBackground() {
+  // Check cache first (valid for 1 second)
+  if (pageBackgroundCache && Date.now() - pageBackgroundCache.timestamp < 1000) {
+    return pageBackgroundCache.variant;
+  }
+
+  try {
+    // Sample 5 points: center, top-left, top-right, bottom-left, bottom-right
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    const samplePoints = [
+      { x: width / 2, y: height / 2 },
+      { x: width * 0.1, y: height * 0.1 },
+      { x: width * 0.9, y: height * 0.1 },
+      { x: width * 0.1, y: height * 0.9 },
+      { x: width * 0.9, y: height * 0.9 }
+    ];
+
+    let totalLuminance = 0;
+    let validSamples = 0;
+
+    samplePoints.forEach(point => {
+      const element = document.elementFromPoint(point.x, point.y);
+      if (element) {
+        const bgColor = window.getComputedStyle(element).backgroundColor;
+        const luminance = calculateLuminance(bgColor);
+        if (luminance !== null) {
+          totalLuminance += luminance;
+          validSamples++;
+        }
+      }
+    });
+
+    // Default to light if we couldn't sample
+    if (validSamples === 0) {
+      const variant = 'light';
+      pageBackgroundCache = { variant, timestamp: Date.now() };
+      return variant;
+    }
+
+    const avgLuminance = totalLuminance / validSamples;
+    // Threshold at 0.5: > 0.5 is light background (use light variant), < 0.5 is dark background (use dark variant)
+    const variant = avgLuminance > 0.5 ? 'light' : 'dark';
+    
+    pageBackgroundCache = { variant, timestamp: Date.now() };
+    return variant;
+  } catch (error) {
+    console.error('Capwe: Error analyzing page background:', error);
+    return 'light';
+  }
+}
+
+function calculateLuminance(color) {
+  try {
+    // Parse rgb/rgba color string
+    const match = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*[\d.]+)?\)/);
+    if (!match) return null;
+
+    const [, r, g, b] = match.map(Number);
+    
+    // Convert to relative luminance (0-1)
+    const normalize = (val) => {
+      const channel = val / 255;
+      return channel <= 0.03928 ? channel / 12.92 : Math.pow((channel + 0.055) / 1.055, 2.4);
+    };
+
+    return 0.2126 * normalize(r) + 0.7152 * normalize(g) + 0.0722 * normalize(b);
+  } catch {
+    return null;
+  }
+}
+
+function getCurrentThemeVariant() {
+  if (settings.themeMode === 'auto') {
+    return analyzePageBackground();
+  } else if (settings.themeMode === 'light' || settings.themeMode === 'dark') {
+    return settings.themeMode;
+  }
+  // Default to auto behavior
+  return analyzePageBackground();
+}
+
+function getThemeColors(type) {
+  const themeName = settings.themeName || 'default';
+  let theme = INDICATOR_THEMES[themeName];
+  
+  // Check custom themes
+  if (!theme && settings.customThemes[themeName]) {
+    theme = settings.customThemes[themeName];
+  }
+  
+  // Fallback to default
+  if (!theme) {
+    theme = INDICATOR_THEMES.default;
+  }
+
+  const variant = getCurrentThemeVariant();
+  const colors = theme[variant]?.[type];
+  
+  // Fallback to default theme if colors not found
+  if (!colors) {
+    return INDICATOR_THEMES.default[variant][type];
+  }
+  
+  return colors;
 }
 
 // Tooltip management
@@ -177,6 +385,9 @@ function createIndicator(element, type, icon) {
   indicator.innerHTML = icon;
   indicator.title = getIndicatorTitle(type);
   
+  // Apply theme colors dynamically
+  applyThemeToIndicator(indicator, type);
+  
   // Position indicator relative to element
   positionIndicator(indicator, element);
   
@@ -202,6 +413,26 @@ function createIndicator(element, type, icon) {
     e.stopPropagation();
     showDetailedTooltip(element, type);
   });
+}
+
+function applyThemeToIndicator(indicator, type) {
+  // Map type to theme key
+  const themeTypeMap = {
+    'ad': 'ad',
+    'link-external': 'linkExternal',
+    'link-internal': 'linkInternal',
+    'form': 'form',
+    'hidden-element': 'hidden'
+  };
+  
+  const themeType = themeTypeMap[type] || 'hidden';
+  const colors = getThemeColors(themeType);
+  
+  if (colors) {
+    indicator.style.backgroundColor = colors.bg;
+    indicator.style.color = colors.text;
+    indicator.style.borderColor = colors.border;
+  }
 }
 
 function positionIndicator(indicator, element) {
@@ -694,7 +925,13 @@ if (typeof chrome !== 'undefined' && chrome.runtime) {
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === 'updateSettings') {
       const oldShowIndicators = settings.showIndicators;
+      const oldTheme = settings.themeName;
+      const oldThemeMode = settings.themeMode;
+      
       settings = { ...settings, ...message.settings };
+      
+      // Check if theme changed
+      const themeChanged = oldTheme !== settings.themeName || oldThemeMode !== settings.themeMode;
       
       // Update indicators if setting changed
       if (oldShowIndicators !== settings.showIndicators) {
@@ -704,9 +941,29 @@ if (typeof chrome !== 'undefined' && chrome.runtime) {
           clearAllIndicators();
         }
       } else if (settings.showIndicators) {
-        // Rescan if other settings changed
-        scanPageForIndicators();
+        if (themeChanged) {
+          // Refresh indicators with new theme
+          refreshIndicatorThemes();
+        } else {
+          // Rescan if other settings changed
+          scanPageForIndicators();
+        }
       }
+      
+      sendResponse({ success: true });
+    }
+    
+    if (message.type === 'updateTheme') {
+      // Handle theme-specific updates
+      if (message.themeName) settings.themeName = message.themeName;
+      if (message.themeMode) settings.themeMode = message.themeMode;
+      if (message.customThemes) settings.customThemes = message.customThemes;
+      
+      // Clear background cache
+      pageBackgroundCache = null;
+      
+      // Refresh all indicators
+      refreshIndicatorThemes();
       
       sendResponse({ success: true });
     }
@@ -717,6 +974,23 @@ if (typeof chrome !== 'undefined' && chrome.runtime) {
           sendResponse({ success: true });
         });
       }
+    }
+  });
+}
+
+function refreshIndicatorThemes() {
+  // Clear background cache to force re-analysis
+  pageBackgroundCache = null;
+  
+  // Update all existing indicators
+  document.querySelectorAll('.capwe-indicator').forEach(indicator => {
+    // Find the associated element
+    const classes = Array.from(indicator.classList);
+    const typeClass = classes.find(c => c.startsWith('capwe-indicator-'));
+    
+    if (typeClass) {
+      const type = typeClass.replace('capwe-indicator-', '');
+      applyThemeToIndicator(indicator, type);
     }
   });
 }

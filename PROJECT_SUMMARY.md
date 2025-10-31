@@ -224,7 +224,7 @@ Capwe/
 │   └── EXTENSION_CONCEPT.md  # Original specification
 └── extension/
     ├── manifest.json     # Extension config
-    ├── content.js        # Main detection (12KB)
+    ├── content.js        # Main detection (15KB)
     ├── ai.js            # AI integration (11KB)
     ├── lookout.js       # Look Out feature (9KB)
     ├── background.js    # Service worker (2KB)
@@ -232,6 +232,7 @@ Capwe/
     ├── test.html        # Test page
     ├── README.md        # Extension docs
     ├── AI_FEATURES.md   # AI documentation
+    ├── THEME_SYSTEM.md  # Theme system docs
     ├── styles/
     │   └── tooltip.css  # Styling (2KB)
     ├── popup/
@@ -246,8 +247,8 @@ Capwe/
         └── icon128.png
 ```
 
-**Total Lines of Code:** ~2,500
-**Total Size:** ~50KB
+**Total Lines of Code:** ~3,000
+**Total Size:** ~60KB
 
 ---
 
@@ -320,6 +321,31 @@ Capwe/
    - Green pulsing highlights
    - Badge notifications
    - Interactive details
+
+### Theme System ✅
+
+1. **Preset Themes**
+   - Default: Balanced colors with good contrast
+   - Minimal: Clean, minimal design
+   - Pastel: Soft, easy on the eyes
+   - Dark: High contrast dark theme
+   - Neon: Vibrant cyberpunk aesthetic
+
+2. **Theme Modes**
+   - Auto: Adapts to page background (light/dark)
+   - Light: Always use light variant
+   - Dark: Always use dark variant
+
+3. **Auto Background Analysis**
+   - Samples 5 points on page
+   - Calculates relative luminance
+   - Selects appropriate theme variant
+   - 1-second cache for performance
+
+4. **Real-time Updates**
+   - Theme changes apply instantly
+   - No page reload required
+   - All indicators update simultaneously
 
 ---
 

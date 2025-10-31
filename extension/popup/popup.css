@@ -120,6 +120,36 @@ body {
   line-height: 1.4;
 }
 
+.setting-label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: #374151;
+}
+
+.theme-select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: white;
+  font-size: 13px;
+  color: #1f2937;
+  cursor: pointer;
+  transition: border-color 0.2s;
+  font-family: inherit;
+}
+
+.theme-select:hover {
+  border-color: #9ca3af;
+}
+
+.theme-select:focus {
+  outline: none;
+  border-color: #4285F4;
+  box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1);
+}
+
 .divider {
   height: 1px;
   background: #e5e7eb;

@@ -33,25 +33,25 @@
   transform: scale(0.95);
 }
 
-/* Indicator types */
+/* Indicator types - Colors will be applied dynamically by theme system */
 .capwe-indicator-ad {
-  background: #ef4444;
+  /* Theme colors applied via JavaScript */
 }
 
 .capwe-indicator-link-external {
-  background: #f59e0b;
+  /* Theme colors applied via JavaScript */
 }
 
 .capwe-indicator-link-internal {
-  background: #10b981;
+  /* Theme colors applied via JavaScript */
 }
 
 .capwe-indicator-form {
-  background: #3b82f6;
+  /* Theme colors applied via JavaScript */
 }
 
 .capwe-indicator-hidden-element {
-  background: #9ca3af;
+  /* Theme colors applied via JavaScript */
 }
 
 /* Capwe Tooltip Styles */
