@@ -1,7 +1,7 @@
 /* Capwe Persistent Indicators */
 
 .capwe-indicator {
-  position: fixed;
+  position: absolute;
   min-width: 32px;
   height: 18px;
   padding: 2px 6px;
@@ -21,6 +21,7 @@
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  pointer-events: auto;
 }
 
 .capwe-indicator:hover {

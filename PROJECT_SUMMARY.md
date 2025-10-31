@@ -52,9 +52,11 @@ All 5 phases have been successfully completed with full feature implementation, 
 
 **Features Implemented:**
 - Real-time tooltip display on hover
+- Persistent visual indicators (text labels)
 - Categorized tooltips (ads: red, links: yellow, forms: blue, hidden: gray)
 - Non-intrusive design with auto-hide
 - Configurable detection features
+- Hover and click interaction for detailed information
 
 ---
 
@@ -121,6 +123,11 @@ All 5 phases have been successfully completed with full feature implementation, 
 - ✅ Shared utilities extracted
 - ✅ Error handling improvements
 - ✅ HTML escaping for XSS prevention
+- ✅ Persistent visual indicators implementation
+- ✅ Text-based labels replacing emoji icons
+- ✅ Hover and click interaction support
+- ✅ Fixed declaration conflicts (sanitizeText, generateId)
+- ✅ Incognito mode support
 
 **Files Created:**
 - `DEVELOPMENT.md` (development guide)
@@ -136,6 +143,10 @@ All 5 phases have been successfully completed with full feature implementation, 
 - Added HTML escaping to prevent XSS
 - Enhanced error handling throughout
 - Comprehensive documentation
+- Implemented persistent visual indicators (text labels)
+- Fixed variable declaration conflicts across modules
+- Added hover and click interactions for indicators
+- Improved user experience with always-visible element detection
 
 ---
 
@@ -248,21 +259,32 @@ Capwe/
    - Pattern-based detection (class names, IDs)
    - Known ad network recognition
    - Privacy impact notices
+   - Persistent "AD" text label indicator (red)
 
 2. **Link Analysis**
    - External/internal classification
    - Security status (HTTPS/HTTP)
    - Download link detection
+   - Persistent "EXT" (external) or "LINK" (internal) text labels (yellow/green)
 
 3. **Form Analysis**
    - Security risk assessment
    - Field type detection
    - Sensitive data warnings
+   - Persistent "FORM" text label indicator (blue)
 
 4. **Hidden Element Detection**
    - Tracking pixel identification
    - Hidden iframe detection
    - Concealed form discovery
+   - Persistent "HIDDEN" text label indicator (gray)
+
+5. **Persistent Visual Indicators**
+   - Always-visible text labels next to detected elements
+   - Color-coded by element type
+   - Hover or click to show detailed tooltips
+   - Auto-repositioning on scroll/resize
+   - Toggle visibility via settings
 
 ### AI Features ✅
 
@@ -374,8 +396,10 @@ Capwe/
 2. Open `chrome://extensions/` in Chrome
 3. Enable "Developer mode"
 4. Click "Load unpacked"
-5. Select the `extension` folder
+5. Select the `extension` folder (not the root Capwe folder)
 6. Configure settings via extension icon
+7. Look for colored text labels (AD, FORM, EXT, LINK, HIDDEN) next to detected elements
+8. Hover over or click labels to see detailed tooltips
 
 ### For AI Features
 
@@ -440,4 +464,28 @@ Developed with privacy and transparency as core principles
 
 **Version:** 1.0.0
 
-**Last Updated:** October 31, 2024
+**Last Updated:** October 31, 2025
+
+---
+
+## Recent Updates (October 2025)
+
+### User Experience Improvements
+- ✅ Added persistent visual indicators with text labels
+- ✅ Replaced emoji icons with professional text badges (AD, FORM, EXT, LINK, HIDDEN)
+- ✅ Implemented hover and click interactions for detailed tooltips
+- ✅ Added auto-repositioning on scroll and window resize
+- ✅ Made indicators always visible (toggle-able in settings)
+
+### Bug Fixes
+- ✅ Fixed `sanitizeText` declaration conflict in content.js
+- ✅ Fixed `generateId` declaration conflict in lookout.js
+- ✅ Resolved variable scoping issues across modules
+- ✅ Added incognito mode support
+
+### Technical Improvements
+- ✅ Converted destructuring assignments to function declarations
+- ✅ Improved runtime utility checking for better fallback support
+- ✅ Enhanced indicator positioning algorithm
+- ✅ Added mouseenter/mouseleave event handlers for better UX
+- ✅ Improved CSS for text-based indicators

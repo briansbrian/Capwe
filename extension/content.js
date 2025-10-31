@@ -207,15 +207,16 @@ function createIndicator(element, type, icon) {
 function positionIndicator(indicator, element) {
   const rect = element.getBoundingClientRect();
   
-  // Position indicator at top-right corner of element
+  // For absolute positioning, use document coordinates
   let top = rect.top + window.scrollY - 8;
   let left = rect.right + window.scrollX - 8;
   
-  // Adjust if it goes off screen
-  const indicatorRect = indicator.getBoundingClientRect();
-  if (left + indicatorRect.width > window.innerWidth + window.scrollX) {
-    left = rect.left + window.scrollX - indicatorRect.width + 8;
+  // Adjust if it goes off screen (right edge)
+  if (left + 40 > document.documentElement.scrollWidth) { // Approximate indicator width
+    left = rect.left + window.scrollX - 40 + 8;
   }
+  
+  // Adjust if too close to top
   if (top < window.scrollY) {
     top = rect.bottom + window.scrollY - 8;
   }
@@ -649,23 +650,6 @@ function startObserving() {
     childList: true,
     subtree: true,
   });
-  
-  // Reposition indicators on scroll/resize
-  window.addEventListener('scroll', debounce(() => {
-    activeIndicators.forEach(element => {
-      if (element._capweIndicator) {
-        positionIndicator(element._capweIndicator, element);
-      }
-    });
-  }, 100));
-  
-  window.addEventListener('resize', debounce(() => {
-    activeIndicators.forEach(element => {
-      if (element._capweIndicator) {
-        positionIndicator(element._capweIndicator, element);
-      }
-    });
-  }, 100));
 }
 
 // Listen for settings updates
