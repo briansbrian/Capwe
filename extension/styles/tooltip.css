@@ -1,0 +1,131 @@
+/* Capwe Tooltip Styles */
+
+.capwe-tooltip {
+  position: fixed;
+  max-width: 300px;
+  max-height: 200px;
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 12px;
+  border-radius: 6px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size: 13px;
+  line-height: 1.4;
+  z-index: 2147483647;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  transition: opacity 0.15s ease-in-out;
+  word-wrap: break-word;
+  overflow-y: auto;
+}
+
+.capwe-tooltip.visible {
+  opacity: 1;
+}
+
+.capwe-tooltip-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.capwe-tooltip-icon {
+  font-size: 18px;
+  margin-right: 8px;
+}
+
+.capwe-tooltip-content {
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.capwe-tooltip-label {
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+/* Type-specific colors */
+.capwe-tooltip.ad {
+  border-left: 4px solid #ef4444;
+}
+
+.capwe-tooltip.link-external {
+  border-left: 4px solid #f59e0b;
+}
+
+.capwe-tooltip.form {
+  border-left: 4px solid #3b82f6;
+}
+
+.capwe-tooltip.hidden-element {
+  border-left: 4px solid #9ca3af;
+}
+
+.capwe-tooltip.security-warning {
+  border-left: 4px solid #dc2626;
+  background: rgba(153, 27, 27, 0.95);
+}
+
+.capwe-tooltip.ai-match {
+  border-left: 4px solid #10b981;
+  background: rgba(5, 46, 22, 0.95);
+}
+
+/* Highlighted elements */
+.capwe-highlighted {
+  outline: 2px dashed currentColor;
+  outline-offset: 2px;
+}
+
+.capwe-highlighted.ad {
+  outline-color: #ef4444;
+}
+
+.capwe-highlighted.link-external {
+  outline-color: #f59e0b;
+}
+
+.capwe-highlighted.form {
+  outline-color: #3b82f6;
+}
+
+.capwe-highlighted.hidden-element {
+  outline-color: #9ca3af;
+}
+
+.capwe-highlighted.ai-match {
+  outline-color: #10b981;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    outline-width: 2px;
+    outline-offset: 2px;
+  }
+  50% {
+    outline-width: 3px;
+    outline-offset: 3px;
+  }
+}
+
+/* Scrollbar styling for tooltips */
+.capwe-tooltip::-webkit-scrollbar {
+  width: 6px;
+}
+
+.capwe-tooltip::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.capwe-tooltip::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+}
+
+.capwe-tooltip::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}

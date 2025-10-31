@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Capwe Settings</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup-container">
+    <div class="popup-header">
+      <h1>Capwe</h1>
+      <p class="subtitle">Transparent Browsing Guide</p>
+    </div>
+    
+    <div class="popup-content">
+      <div class="setting-group">
+        <label class="toggle-label">
+          <input type="checkbox" id="enabled" checked>
+          <span class="toggle-switch"></span>
+          <span class="toggle-text">Enable Extension</span>
+        </label>
+      </div>
+      
+      <div class="divider"></div>
+      
+      <h3>Detection Features</h3>
+      
+      <div class="setting-group">
+        <label class="toggle-label">
+          <input type="checkbox" id="detectAds" checked>
+          <span class="toggle-switch"></span>
+          <span class="toggle-text">Detect Advertisements</span>
+        </label>
+        <p class="setting-description">Identify and highlight ads and sponsored content</p>
+      </div>
+      
+      <div class="setting-group">
+        <label class="toggle-label">
+          <input type="checkbox" id="detectLinks" checked>
+          <span class="toggle-switch"></span>
+          <span class="toggle-text">Analyze Links</span>
+        </label>
+        <p class="setting-description">Show information about link destinations</p>
+      </div>
+      
+      <div class="setting-group">
+        <label class="toggle-label">
+          <input type="checkbox" id="detectForms" checked>
+          <span class="toggle-switch"></span>
+          <span class="toggle-text">Analyze Forms</span>
+        </label>
+        <p class="setting-description">Provide security information about forms</p>
+      </div>
+      
+      <div class="setting-group">
+        <label class="toggle-label">
+          <input type="checkbox" id="detectHidden" checked>
+          <span class="toggle-switch"></span>
+          <span class="toggle-text">Detect Hidden Elements</span>
+        </label>
+        <p class="setting-description">Find hidden tracking pixels and elements</p>
+      </div>
+      
+      <div class="divider"></div>
+      
+      <h3>AI Features</h3>
+      
+      <div class="setting-group">
+        <label class="toggle-label">
+          <input type="checkbox" id="aiEnabled">
+          <span class="toggle-switch"></span>
+          <span class="toggle-text">AI-Enhanced Analysis</span>
+        </label>
+        <p class="setting-description">Use Chrome's built-in AI for advanced detection (Chrome 128+)</p>
+      </div>
+      
+      <div class="setting-group">
+        <label class="toggle-label">
+          <input type="checkbox" id="lookOutEnabled">
+          <span class="toggle-switch"></span>
+          <span class="toggle-text">Look Out Feature</span>
+        </label>
+        <p class="setting-description">Monitor pages for specific content</p>
+        <a href="lookout.html" class="link-secondary">
+          Configure Look Out Criteria →
+        </a>
+      </div>
+    </div>
+    
+    <div class="popup-footer">
+      <p class="version">Version 1.0.0</p>
+      <p class="privacy-note">🔒 All processing happens locally. No data is sent to external servers.</p>
+    </div>
+  </div>
+  
+  <script src="popup.js"></script>
+</body>
+</html>

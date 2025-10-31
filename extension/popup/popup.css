@@ -1,0 +1,216 @@
+/* Capwe Popup Styles */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  width: 350px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size: 14px;
+  color: #1f2937;
+  background: #f9fafb;
+}
+
+.popup-container {
+  display: flex;
+  flex-direction: column;
+  max-height: 600px;
+}
+
+.popup-header {
+  background: linear-gradient(135deg, #4285F4 0%, #357AE8 100%);
+  color: white;
+  padding: 20px;
+  text-align: center;
+}
+
+.popup-header h1 {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.subtitle {
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+.popup-content {
+  padding: 16px;
+  overflow-y: auto;
+  max-height: 450px;
+}
+
+.popup-content h3 {
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+
+.setting-group {
+  margin-bottom: 16px;
+}
+
+.setting-group.disabled {
+  opacity: 0.5;
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.setting-group.disabled .toggle-label {
+  cursor: not-allowed;
+}
+
+.toggle-label input[type="checkbox"] {
+  display: none;
+}
+
+.toggle-switch {
+  position: relative;
+  width: 42px;
+  height: 24px;
+  background: #d1d5db;
+  border-radius: 12px;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.toggle-switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.2s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-label input[type="checkbox"]:checked + .toggle-switch {
+  background: #4285F4;
+}
+
+.toggle-label input[type="checkbox"]:checked + .toggle-switch::after {
+  transform: translateX(18px);
+}
+
+.toggle-text {
+  margin-left: 12px;
+  font-weight: 500;
+}
+
+.setting-description {
+  margin-top: 6px;
+  margin-left: 54px;
+  font-size: 12px;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+.divider {
+  height: 1px;
+  background: #e5e7eb;
+  margin: 20px 0;
+}
+
+.popup-footer {
+  padding: 12px 16px;
+  background: white;
+  border-top: 1px solid #e5e7eb;
+  position: relative;
+}
+
+.version {
+  font-size: 11px;
+  color: #9ca3af;
+  text-align: center;
+  margin-bottom: 6px;
+}
+
+.privacy-note {
+  font-size: 11px;
+  color: #10b981;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.link-secondary {
+  display: inline-block;
+  margin-top: 8px;
+  color: #4285F4;
+  text-decoration: none;
+  font-size: 12px;
+}
+
+.link-secondary:hover {
+  text-decoration: underline;
+}
+
+.saved-indicator {
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  transform: translateY(-50%);
+  background: #10b981;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  animation: fadeIn 0.2s;
+}
+
+.saved-indicator.fade-out {
+  animation: fadeOut 0.3s;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%) scale(1);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* Scrollbar styling */
+.popup-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.popup-content::-webkit-scrollbar-track {
+  background: #f3f4f6;
+}
+
+.popup-content::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 4px;
+}
+
+.popup-content::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
