@@ -18,6 +18,19 @@ function sanitizeText(text, maxLength = UTILS_CONFIG.MAX_TEXT_LENGTH) {
     .trim();
 }
 
+// Escape HTML to prevent XSS when inserting into DOM
+function escapeHtml(text) {
+  if (!text) return '';
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+// Sanitize text for safe HTML insertion (combines sanitization and escaping)
+function sanitizeForHtml(text, maxLength = UTILS_CONFIG.MAX_TEXT_LENGTH) {
+  return escapeHtml(sanitizeText(text, maxLength));
+}
+
 // Sanitize URL for safe display
 function sanitizeURL(url, maxLength = UTILS_CONFIG.MAX_URL_LENGTH) {
   try {
@@ -55,6 +68,8 @@ function debounce(func, wait) {
 // Export utilities
 window.CapweUtils = {
   sanitizeText,
+  sanitizeForHtml,
+  escapeHtml,
   sanitizeURL,
   generateId,
   debounce,

@@ -220,6 +220,13 @@ function removeHighlight(element) {
 
 // Show match details in tooltip
 function showMatchDetails(element, match, criteria) {
+  // Use shared utility for HTML escaping
+  const escapeHtml = window.CapweUtils?.escapeHtml || ((text) => {
+    const div = document.createElement('div');
+    div.textContent = text || '';
+    return div.innerHTML;
+  });
+  
   const content = `
     <div class="capwe-tooltip-header">
       <span class="capwe-tooltip-icon">🎯</span>
@@ -227,14 +234,14 @@ function showMatchDetails(element, match, criteria) {
     </div>
     <div class="capwe-tooltip-content">
       <div class="capwe-tooltip-label">Criteria:</div>
-      <div>${criteria.type.charAt(0).toUpperCase() + criteria.type.slice(1)}</div>
+      <div>${escapeHtml(criteria.type.charAt(0).toUpperCase() + criteria.type.slice(1))}</div>
       <div class="capwe-tooltip-label" style="margin-top: 8px;">Keywords:</div>
-      <div>${criteria.keywords.join(', ')}</div>
+      <div>${escapeHtml(criteria.keywords.join(', '))}</div>
       <div class="capwe-tooltip-label" style="margin-top: 8px;">Relevance:</div>
-      <div>${match.relevance}% match</div>
+      <div>${escapeHtml(match.relevance.toString())}% match</div>
       ${match.explanation ? `
         <div class="capwe-tooltip-label" style="margin-top: 8px;">Analysis:</div>
-        <div style="font-size: 11px;">${match.explanation}</div>
+        <div style="font-size: 11px;">${escapeHtml(match.explanation)}</div>
       ` : ''}
       <div style="margin-top: 12px; font-size: 11px; color: #10b981;">
         ✓ This content matches your Look Out criteria

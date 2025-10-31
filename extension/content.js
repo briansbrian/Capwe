@@ -40,8 +40,14 @@ let settings = {
 };
 
 // Use shared utilities
-const { sanitizeText, sanitizeURL, debounce } = window.CapweUtils || {
+const { sanitizeText, sanitizeForHtml, sanitizeURL, debounce } = window.CapweUtils || {
   sanitizeText: (text, maxLength = 500) => text?.substring(0, maxLength).replace(/[^\w\s\-.,!?@/:]/g, '').trim() || '',
+  sanitizeForHtml: (text, maxLength = 500) => {
+    const sanitized = text?.substring(0, maxLength).replace(/[^\w\s\-.,!?@/:]/g, '').trim() || '';
+    const div = document.createElement('div');
+    div.textContent = sanitized;
+    return div.innerHTML;
+  },
   sanitizeURL: (url) => {
     try {
       const parsed = new URL(url);
@@ -185,7 +191,7 @@ function getAdInfo(element) {
     </div>
     <div class="capwe-tooltip-content">
       <div class="capwe-tooltip-label">Ad Network:</div>
-      <div>${sanitizeText(network, 50)}</div>
+      <div>${sanitizeForHtml(network, 50)}</div>
       <div class="capwe-tooltip-label" style="margin-top: 8px;">Privacy Notice:</div>
       <div>This content may track your browsing activity</div>
     </div>
@@ -215,7 +221,7 @@ function analyzeLink(anchor) {
       </div>
       <div class="capwe-tooltip-content">
         <div class="capwe-tooltip-label">Destination:</div>
-        <div style="word-break: break-all;">${sanitizeText(url.hostname + url.pathname, 100)}</div>
+        <div style="word-break: break-all;">${sanitizeForHtml(url.hostname + url.pathname, 100)}</div>
         ${!isSecure ? '<div style="margin-top: 8px; color: #fbbf24;">⚠️ Not HTTPS</div>' : ''}
         ${isExternal ? '<div style="margin-top: 4px;">Leaving current site</div>' : ''}
       </div>
@@ -271,8 +277,8 @@ async function analyzeForm(form) {
       const aiAnalysis = await window.CapweAI.analyzeFormSecurity(form);
       if (aiAnalysis && aiAnalysis.message) {
         aiInsight = `<div style="margin-top: 8px; padding: 8px; background: rgba(255,255,255,0.1); border-radius: 4px;">
-          <div style="font-weight: 600; margin-bottom: 4px;">${aiAnalysis.icon} AI Analysis:</div>
-          <div>${aiAnalysis.message}</div>
+          <div style="font-weight: 600; margin-bottom: 4px;">${sanitizeForHtml(aiAnalysis.icon, 10)} AI Analysis:</div>
+          <div>${sanitizeForHtml(aiAnalysis.message, 500)}</div>
         </div>`;
       }
     } catch (error) {
@@ -289,7 +295,7 @@ async function analyzeForm(form) {
       <div class="capwe-tooltip-label">Fields:</div>
       <div>${totalFields} total, ${requiredFields} required</div>
       <div class="capwe-tooltip-label" style="margin-top: 8px;">Destination:</div>
-      <div style="word-break: break-all;">${sanitizeText(action, 100)}</div>
+      <div style="word-break: break-all;">${sanitizeForHtml(action, 100)}</div>
       ${securityWarning ? '<div style="margin-top: 8px; color: #ef4444;">🚨 SECURITY RISK: Sensitive data over HTTP</div>' : ''}
       ${isSecure ? '<div style="margin-top: 4px; color: #10b981;">✓ Secure (HTTPS)</div>' : ''}
       ${aiInsight}
