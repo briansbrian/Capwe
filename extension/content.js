@@ -109,8 +109,8 @@ const INDICATOR_THEMES = {
 const AD_PATTERNS = {
   // Use more specific patterns to avoid false positives
   // \b = word boundary ensures we match whole words/segments
-  classes: /\b(advertisement|sponsored|advert|adspace|google_ad|adsense|ad-banner|ad-container|ad-slot|ads-wrapper)\b/i,
-  ids: /\b(advertisement|sponsored|ad-banner|ad-container|ad-slot|ad-unit|ads-wrapper)\b/i,
+  classes: /\b(advertisement|sponsored|advert|adspace|google_ad|adsense|ad-banner|ad-container|ad-slot|ads-wrapper|promo-popup|offer-popup|bonus-popup)\b/i,
+  ids: /\b(advertisement|sponsored|ad-banner|ad-container|ad-slot|ad-unit|ads-wrapper|bonus.*popup|promo.*popup|offer.*popup)\b/i,
   adNetworks: [
     'doubleclick.net',
     'googlesyndication.com',
@@ -571,9 +571,16 @@ function scanPageForIndicators() {
   
   clearAllIndicators();
   
-  // Scan for ads
+  // Scan for ads (including in popups/modals)
   if (settings.detectAds) {
-    document.querySelectorAll('*').forEach(element => {
+    // Scan all elements including modals, dialogs, and overlays
+    const allElements = document.querySelectorAll('*');
+    // Also specifically check common modal/popup containers
+    const modalContainers = document.querySelectorAll('[role="dialog"], [role="alertdialog"], .modal, .popup, [aria-modal="true"]');
+    
+    const elementsToCheck = new Set([...allElements, ...modalContainers]);
+    
+    elementsToCheck.forEach(element => {
       if (isAd(element) && !element._capweIndicator && shouldShowIndicator(element)) {
         createIndicator(element, 'ad', 'AD');
       }
@@ -641,14 +648,39 @@ function isAd(element) {
     return AD_PATTERNS.adNetworks.some(network => src.includes(network));
   }
   
+  // Check for affiliate/promotional popups
+  // Look for containers with multiple nofollow links (common in affiliate popups)
+  if (element.tagName === 'ASIDE' || element.classList?.contains('popup') || element.classList?.contains('modal')) {
+    const nofollowLinks = element.querySelectorAll('a[rel*="nofollow"]');
+    const hasOffer = /bonus|offer|deal|promo|welcome|limited.*time|hot.*offer/i.test(element.textContent || '');
+    
+    // If popup has nofollow links AND promotional language, it's likely an ad
+    if (nofollowLinks.length > 0 && hasOffer) {
+      return true;
+    }
+  }
+  
   return false;
 }
 
 function getAdInfo(element) {
   let network = 'Unknown';
   let adUrl = '';
+  let adType = 'Advertisement';
   
-  if (element.tagName === 'IFRAME') {
+  // Check if it's an affiliate/promotional popup
+  const nofollowLinks = element.querySelectorAll('a[rel*="nofollow"]');
+  const hasOffer = /bonus|offer|deal|promo|welcome|limited.*time|hot.*offer/i.test(element.textContent || '');
+  
+  if (nofollowLinks.length > 0 && hasOffer) {
+    adType = 'Affiliate/Promotional Popup';
+    network = 'Affiliate Marketing';
+    // Get the primary affiliate link
+    const mainLink = nofollowLinks[0];
+    if (mainLink) {
+      adUrl = mainLink.href;
+    }
+  } else if (element.tagName === 'IFRAME') {
     const src = element.src || element.getAttribute('data-src') || '';
     adUrl = src;
     const matchedNetwork = AD_PATTERNS.adNetworks.find(net => src.includes(net));
@@ -669,15 +701,15 @@ function getAdInfo(element) {
   return `
     <div class="capwe-tooltip-header">
       <span class="capwe-tooltip-icon">🛑</span>
-      <span>Advertisement</span>
+      <span>${adType}</span>
     </div>
     <div class="capwe-tooltip-content">
-      <div class="capwe-tooltip-label">Ad Network:</div>
+      <div class="capwe-tooltip-label">Type:</div>
       <div style="margin-bottom: 8px;">${sanitizeForHtml(network, 50)}</div>
-      ${adUrl ? `<div class="capwe-tooltip-label">Ad URL:</div>
+      ${adUrl ? `<div class="capwe-tooltip-label">Target URL:</div>
       <div style="word-break: break-all; font-family: monospace; font-size: 11px; background: rgba(0,0,0,0.1); padding: 4px 8px; border-radius: 4px; margin-bottom: 8px;">${sanitizeForHtml(displayUrl, 200)}</div>` : ''}
       <div class="capwe-tooltip-label">Privacy Notice:</div>
-      <div>This content may track your browsing activity</div>
+      <div>${adType.includes('Affiliate') ? 'Affiliate link - Site earns commission from your actions' : 'This content may track your browsing activity'}</div>
     </div>
   `;
 }
@@ -994,16 +1026,51 @@ function startObserving() {
   document.addEventListener('mouseover', handleMouseOver, true);
   document.addEventListener('mouseout', handleMouseOut, true);
   
-  // Observe DOM changes
-  const observer = new MutationObserver(debounce(() => {
-    // Rescan for new elements
-    scanPageForIndicators();
+  // Observe DOM changes (watch for popups, modals, and dynamic content)
+  const observer = new MutationObserver(debounce((mutations) => {
+    // Check if significant changes occurred (not just attribute changes)
+    const hasSignificantChanges = mutations.some(mutation => {
+      // New/removed nodes
+      if (mutation.addedNodes.length > 0 || mutation.removedNodes.length > 0) {
+        return true;
+      }
+      
+      // Attribute changes that might reveal popups (display, visibility, aria-hidden, etc.)
+      if (mutation.type === 'attributes') {
+        const attrName = mutation.attributeName;
+        if (attrName === 'class' || attrName === 'style' || 
+            attrName === 'aria-hidden' || attrName === 'aria-modal') {
+          const element = mutation.target;
+          // Check if this is a modal/dialog becoming visible
+          if (element.matches && element.matches('[role="dialog"], [role="alertdialog"], .modal, .popup, [aria-modal="true"]')) {
+            return true;
+          }
+        }
+      }
+      
+      return false;
+    });
+    
+    if (hasSignificantChanges) {
+      // Rescan for new elements
+      scanPageForIndicators();
+    }
   }, CONFIG.SCAN_THROTTLE));
   
+  // Observe both body and document root to catch all popups/modals
   observer.observe(document.body, {
     childList: true,
     subtree: true,
+    attributes: true, // Watch attribute changes to detect modals becoming visible
+    attributeFilter: ['class', 'style', 'aria-hidden', 'aria-modal'], // Only watch relevant attributes
   });
+  
+  // Also watch for popups appended directly to document root or html
+  if (document.documentElement) {
+    observer.observe(document.documentElement, {
+      childList: true,
+    });
+  }
 }
 
 // Listen for settings updates
