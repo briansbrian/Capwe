@@ -629,14 +629,94 @@ const lookOutSettingsHTML = `
 `;
 ```
 
+### Security Considerations for AI Prompts
+
+#### Prompt Injection Prevention
+
+When constructing AI prompts from DOM content, always sanitize inputs to prevent prompt injection attacks:
+
+```javascript
+// Sanitize text for AI prompts
+function sanitizeForPrompt(text, maxLength = 500) {
+  if (!text) return '';
+  
+  // Remove or escape potential prompt injection patterns
+  return text
+    .substring(0, maxLength)
+    .replace(/[^\w\s\-.,!?@#$%&()]/g, '') // Remove special chars
+    .trim();
+}
+
+// Sanitize URLs
+function sanitizeURL(url) {
+  try {
+    const parsed = new URL(url);
+    // Only return the origin and pathname, remove query params and fragments
+    return `${parsed.origin}${parsed.pathname}`;
+  } catch {
+    return '[Invalid URL]';
+  }
+}
+
+// Example: Secure form analysis
+async function analyzeFormSecurity(formElement, aiSession) {
+  const action = sanitizeURL(formElement.action);
+  const sensitiveInputs = Array.from(formElement.querySelectorAll('input'))
+    .map(input => sanitizeForPrompt(getInputLabel(input), 50))
+    .filter(label => /credit card|password|ssn/i.test(label));
+  
+  const prompt = `Analyze security risk: Form with fields [${sensitiveInputs.join(', ')}] submits to URL: ${action}`;
+  
+  const result = await aiSession.prompt(prompt);
+  return result;
+}
+```
+
+#### Input Validation
+
+```javascript
+// Validate and limit input before AI processing
+const AI_LIMITS = {
+  MAX_TEXT_LENGTH: 500,
+  MAX_URL_LENGTH: 200,
+  MAX_LABEL_LENGTH: 50,
+  ALLOWED_CHARS: /^[\w\s\-.,!?@#$%&()]+$/
+};
+
+function validateInput(text, type = 'text') {
+  const limits = {
+    'text': AI_LIMITS.MAX_TEXT_LENGTH,
+    'url': AI_LIMITS.MAX_URL_LENGTH,
+    'label': AI_LIMITS.MAX_LABEL_LENGTH
+  };
+  
+  const maxLength = limits[type] || AI_LIMITS.MAX_TEXT_LENGTH;
+  
+  if (text.length > maxLength) {
+    text = text.substring(0, maxLength);
+  }
+  
+  return text.replace(/[^\w\s\-.,!?@#$%&()]/g, '');
+}
+```
+
 ### AI Performance Optimization
 
 #### Caching Strategy
 
 ```javascript
+// Configuration constants
+const AI_CONFIG = {
+  CACHE_MAX_SIZE: 100,
+  CACHE_TTL_MS: 3600000, // 1 hour
+  BATCH_SIZE: 5,
+  BATCH_DELAY_MS: 100,
+  MAX_CALLS_PER_MINUTE: 60
+};
+
 // Cache AI responses to avoid redundant analysis
 class AICache {
-  constructor(maxSize = 100, ttl = 3600000) { // 1 hour TTL
+  constructor(maxSize = AI_CONFIG.CACHE_MAX_SIZE, ttl = AI_CONFIG.CACHE_TTL_MS) {
     this.cache = new Map();
     this.maxSize = maxSize;
     this.ttl = ttl;
@@ -672,7 +752,7 @@ const aiCache = new AICache();
 ```javascript
 // Process multiple elements in batches to optimize AI calls
 async function batchAnalyze(elements, analysisFunction, aiSession) {
-  const batchSize = 5;
+  const batchSize = AI_CONFIG.BATCH_SIZE;
   const results = [];
   
   for (let i = 0; i < elements.length; i += batchSize) {
@@ -693,7 +773,7 @@ async function batchAnalyze(elements, analysisFunction, aiSession) {
     results.push(...batchResults);
     
     // Throttle to avoid overwhelming the AI
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise(resolve => setTimeout(resolve, AI_CONFIG.BATCH_DELAY_MS));
   }
   
   return results;
@@ -761,7 +841,7 @@ class AIResourceMonitor {
   
   shouldThrottle() {
     const metrics = this.getMetrics();
-    return metrics.callsPerMinute > 60; // Limit to 60 calls per minute
+    return metrics.callsPerMinute > AI_CONFIG.MAX_CALLS_PER_MINUTE;
   }
 }
 ```
