@@ -35,6 +35,8 @@ let settings = {
   detectLinks: true,
   detectForms: true,
   detectHidden: true,
+  aiEnabled: false,
+  lookOutEnabled: false,
 };
 
 // Utility functions
@@ -216,7 +218,7 @@ function analyzeLink(anchor) {
 }
 
 // Form analysis
-function analyzeForm(form) {
+async function analyzeForm(form) {
   const action = form.action || window.location.href;
   const method = form.method || 'GET';
   const isSecure = action.startsWith('https://');
@@ -254,6 +256,22 @@ function analyzeForm(form) {
   
   const securityWarning = hasSensitiveFields && !isSecure;
   
+  // Try AI-enhanced analysis if enabled
+  let aiInsight = '';
+  if (settings.aiEnabled && window.CapweAI && hasSensitiveFields) {
+    try {
+      const aiAnalysis = await window.CapweAI.analyzeFormSecurity(form);
+      if (aiAnalysis && aiAnalysis.message) {
+        aiInsight = `<div style="margin-top: 8px; padding: 8px; background: rgba(255,255,255,0.1); border-radius: 4px;">
+          <div style="font-weight: 600; margin-bottom: 4px;">${aiAnalysis.icon} AI Analysis:</div>
+          <div>${aiAnalysis.message}</div>
+        </div>`;
+      }
+    } catch (error) {
+      console.error('AI form analysis error:', error);
+    }
+  }
+  
   return `
     <div class="capwe-tooltip-header">
       <span class="capwe-tooltip-icon">📝</span>
@@ -266,6 +284,7 @@ function analyzeForm(form) {
       <div style="word-break: break-all;">${sanitizeText(action, 100)}</div>
       ${securityWarning ? '<div style="margin-top: 8px; color: #ef4444;">🚨 SECURITY RISK: Sensitive data over HTTP</div>' : ''}
       ${isSecure ? '<div style="margin-top: 4px; color: #10b981;">✓ Secure (HTTPS)</div>' : ''}
+      ${aiInsight}
     </div>
   `;
 }
@@ -329,7 +348,7 @@ function analyzeHiddenElement(element) {
 }
 
 // Event handlers
-function handleMouseOver(event) {
+async function handleMouseOver(event) {
   if (!settings.enabled) return;
   
   const target = event.target;
@@ -356,7 +375,7 @@ function handleMouseOver(event) {
   
   // Check for forms
   if (settings.detectForms && target.tagName === 'FORM') {
-    const content = analyzeForm(target);
+    const content = await analyzeForm(target);
     showTooltip(target, content, 'form');
     return;
   }
@@ -396,6 +415,15 @@ function init() {
 }
 
 function startObserving() {
+  // Initialize AI if enabled
+  if (settings.aiEnabled && window.CapweAI) {
+    window.CapweAI.initialize().then(() => {
+      console.log('Capwe AI initialized');
+    }).catch((error) => {
+      console.error('Failed to initialize AI:', error);
+    });
+  }
+  
   // Add event listeners
   document.addEventListener('mouseover', handleMouseOver, true);
   document.addEventListener('mouseout', handleMouseOut, true);

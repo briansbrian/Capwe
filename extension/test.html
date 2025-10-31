@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Capwe Extension Test Page</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    .section {
+      margin: 30px 0;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+    }
+    h1, h2 {
+      color: #333;
+    }
+    .ad-container {
+      background: #f0f0f0;
+      padding: 20px;
+      text-align: center;
+    }
+    .sponsored {
+      background: #fff3cd;
+      padding: 10px;
+      margin: 10px 0;
+    }
+    iframe {
+      width: 100%;
+      height: 200px;
+      border: 1px solid #ccc;
+    }
+    form {
+      background: #f9f9f9;
+      padding: 20px;
+      border-radius: 4px;
+    }
+    input, textarea {
+      display: block;
+      width: 100%;
+      margin: 10px 0;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    button {
+      background: #007bff;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .tracking-pixel {
+      width: 1px;
+      height: 1px;
+    }
+    .hidden-element {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>Capwe Extension Test Page</h1>
+  <p>This page contains various elements to test the Capwe extension features.</p>
+
+  <!-- Test Section 1: Advertisements -->
+  <div class="section">
+    <h2>1. Advertisement Detection</h2>
+    
+    <div class="ad-container">
+      <div class="advertisement">
+        <p>This is a mock advertisement</p>
+        <p>Special Offer - 50% Off!</p>
+      </div>
+    </div>
+    
+    <div class="sponsored">
+      <p>Sponsored Content: Amazing Product You Need!</p>
+    </div>
+    
+    <!-- Simulated ad iframe -->
+    <iframe src="about:blank" data-ad-network="doubleclick.net"></iframe>
+  </div>
+
+  <!-- Test Section 2: Links -->
+  <div class="section">
+    <h2>2. Link Analysis</h2>
+    
+    <p>
+      <a href="https://example.com">External Link (HTTPS)</a> - 
+      <a href="http://example.com">External Link (HTTP)</a> - 
+      <a href="/about">Internal Link</a> - 
+      <a href="/files/document.pdf" download>Download Link</a>
+    </p>
+    
+    <p>
+      <a href="https://google.com">Misleading Link - Click here for budget travel tips!</a>
+    </p>
+  </div>
+
+  <!-- Test Section 3: Forms -->
+  <div class="section">
+    <h2>3. Form Analysis</h2>
+    
+    <!-- Insecure Login Form (HTTP) -->
+    <h3>Login Form (HTTP - Should trigger security warning)</h3>
+    <form action="http://example.com/login" method="POST">
+      <label for="username">Username:</label>
+      <input type="text" id="username" name="username" required>
+      
+      <label for="password">Password:</label>
+      <input type="password" id="password" name="password" required>
+      
+      <button type="submit">Login</button>
+    </form>
+    
+    <!-- Secure Payment Form (HTTPS) -->
+    <h3>Payment Form (HTTPS - Secure)</h3>
+    <form action="https://example.com/payment" method="POST">
+      <label for="cardnumber">Credit Card Number:</label>
+      <input type="text" id="cardnumber" name="cardnumber" required>
+      
+      <label for="cvv">CVV:</label>
+      <input type="text" id="cvv" name="cvv" required>
+      
+      <button type="submit">Pay Now</button>
+    </form>
+    
+    <!-- Contact Form -->
+    <h3>Contact Form</h3>
+    <form action="https://example.com/contact" method="POST">
+      <label for="name">Name:</label>
+      <input type="text" id="name" name="name" required>
+      
+      <label for="email">Email:</label>
+      <input type="email" id="email" name="email" required>
+      
+      <label for="message">Message:</label>
+      <textarea id="message" name="message" rows="4"></textarea>
+      
+      <button type="submit">Send Message</button>
+    </form>
+  </div>
+
+  <!-- Test Section 4: Hidden Elements -->
+  <div class="section">
+    <h2>4. Hidden Elements</h2>
+    
+    <p>There are hidden tracking elements on this page:</p>
+    
+    <!-- Tracking pixel (1x1 image) -->
+    <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" 
+         class="tracking-pixel" 
+         width="1" 
+         height="1" 
+         alt="">
+    
+    <!-- Hidden form -->
+    <form class="hidden-element">
+      <input type="hidden" name="tracking_id" value="12345">
+      <input type="hidden" name="user_data" value="collected">
+    </form>
+    
+    <!-- Hidden iframe -->
+    <iframe src="about:blank" style="display:none;"></iframe>
+    
+    <p><em>The extension should detect these hidden elements when you hover near them.</em></p>
+  </div>
+
+  <!-- Test Section 5: Mixed Content -->
+  <div class="section">
+    <h2>5. Mixed Content</h2>
+    
+    <article>
+      <h3>Budget Travel Tips for 2024</h3>
+      <p>Planning a trip on a budget? Here are some great tips to save money while traveling...</p>
+      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore.</p>
+      
+      <!-- Contextually mismatched ad -->
+      <div class="sponsored">
+        <a href="https://luxury-watches.example.com">Our Sponsor: Luxury Watches - Buy Now!</a>
+      </div>
+      
+      <p>More budget travel content continues here...</p>
+    </article>
+  </div>
+
+  <div class="section">
+    <h2>Testing Instructions</h2>
+    <ol>
+      <li>Load the Capwe extension in Chrome (chrome://extensions/)</li>
+      <li>Open this test page</li>
+      <li>Hover over different elements to see tooltips</li>
+      <li>Check the extension popup to toggle features on/off</li>
+      <li>Enable AI features if available (Chrome 128+)</li>
+    </ol>
+    
+    <h3>Expected Results:</h3>
+    <ul>
+      <li><strong>Ads:</strong> Red border tooltip with "Advertisement" label</li>
+      <li><strong>External Links:</strong> Yellow border with destination info</li>
+      <li><strong>Forms:</strong> Blue border with security info (HTTP forms should show warnings)</li>
+      <li><strong>Hidden Elements:</strong> Gray border tooltip when detected</li>
+      <li><strong>AI Analysis:</strong> Additional insights when AI is enabled</li>
+    </ul>
+  </div>
+</body>
+</html>
