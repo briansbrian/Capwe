@@ -43,31 +43,50 @@ let settings = {
   showIndicators: true, // New setting for persistent indicators
 };
 
-// Use shared utilities
-const { sanitizeText, sanitizeForHtml, sanitizeURL, debounce } = window.CapweUtils || {
-  sanitizeText: (text, maxLength = 500) => text?.substring(0, maxLength).replace(/[^\w\s\-.,!?@/:]/g, '').trim() || '',
-  sanitizeForHtml: (text, maxLength = 500) => {
-    const sanitized = text?.substring(0, maxLength).replace(/[^\w\s\-.,!?@/:]/g, '').trim() || '';
-    const div = document.createElement('div');
-    div.textContent = sanitized;
-    return div.innerHTML;
-  },
-  sanitizeURL: (url) => {
-    try {
-      const parsed = new URL(url);
-      return `${parsed.origin}${parsed.pathname}`;
-    } catch {
-      return '[Invalid URL]';
-    }
-  },
-  debounce: (func, wait) => {
-    let timeout;
-    return function(...args) {
+// Use shared utilities with fallbacks
+function sanitizeText(text, maxLength = 500) {
+  if (window.CapweUtils?.sanitizeText) {
+    return window.CapweUtils.sanitizeText(text, maxLength);
+  }
+  return text?.substring(0, maxLength).replace(/[^\w\s\-.,!?@/:]/g, '').trim() || '';
+}
+
+function sanitizeForHtml(text, maxLength = 500) {
+  if (window.CapweUtils?.sanitizeForHtml) {
+    return window.CapweUtils.sanitizeForHtml(text, maxLength);
+  }
+  const sanitized = text?.substring(0, maxLength).replace(/[^\w\s\-.,!?@/:]/g, '').trim() || '';
+  const div = document.createElement('div');
+  div.textContent = sanitized;
+  return div.innerHTML;
+}
+
+function sanitizeURL(url) {
+  if (window.CapweUtils?.sanitizeURL) {
+    return window.CapweUtils.sanitizeURL(url);
+  }
+  try {
+    const parsed = new URL(url);
+    return `${parsed.origin}${parsed.pathname}`;
+  } catch {
+    return '[Invalid URL]';
+  }
+}
+
+function debounce(func, wait) {
+  if (window.CapweUtils?.debounce) {
+    return window.CapweUtils.debounce(func, wait);
+  }
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
       clearTimeout(timeout);
-      timeout = setTimeout(() => func(...args), wait);
+      func(...args);
     };
-  },
-};
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
 
 // Tooltip management
 function createTooltip() {
@@ -167,7 +186,18 @@ function createIndicator(element, type, icon) {
   // Store reference for cleanup
   element._capweIndicator = indicator;
   
-  // Add click handler to show detailed tooltip
+  // Add hover handlers to show detailed tooltip
+  indicator.addEventListener('mouseenter', (e) => {
+    e.stopPropagation();
+    showDetailedTooltip(element, type);
+  });
+  
+  indicator.addEventListener('mouseleave', (e) => {
+    e.stopPropagation();
+    hideTooltip();
+  });
+  
+  // Add click handler as backup
   indicator.addEventListener('click', (e) => {
     e.stopPropagation();
     showDetailedTooltip(element, type);
@@ -196,12 +226,12 @@ function positionIndicator(indicator, element) {
 
 function getIndicatorTitle(type) {
   switch (type) {
-    case 'ad': return 'Advertisement - Hover for details';
-    case 'link-external': return 'External Link - Hover for details';
-    case 'link-internal': return 'Internal Link - Hover for details';
-    case 'form': return 'Form - Hover for details';
-    case 'hidden-element': return 'Hidden Element - Hover for details';
-    default: return 'Detected element - Hover for details';
+    case 'ad': return 'Advertisement - Hover or click for details';
+    case 'link-external': return 'External Link - Hover or click for details';
+    case 'link-internal': return 'Internal Link - Hover or click for details';
+    case 'form': return 'Form - Hover or click for details';
+    case 'hidden-element': return 'Hidden Element - Hover or click for details';
+    default: return 'Detected element - Hover or click for details';
   }
 }
 
@@ -255,7 +285,7 @@ function scanPageForIndicators() {
   if (settings.detectAds) {
     document.querySelectorAll('*').forEach(element => {
       if (isAd(element) && !element._capweIndicator) {
-        createIndicator(element, 'ad', '🛑');
+        createIndicator(element, 'ad', 'AD');
       }
     });
   }
@@ -265,8 +295,8 @@ function scanPageForIndicators() {
     document.querySelectorAll('a[href]').forEach(link => {
       if (!link._capweIndicator) {
         const type = link.href.startsWith(window.location.origin) ? 'link-internal' : 'link-external';
-        const icon = link.href.startsWith(window.location.origin) ? '🏠' : '🔗';
-        createIndicator(link, type, icon);
+        const label = link.href.startsWith(window.location.origin) ? 'LINK' : 'EXT';
+        createIndicator(link, type, label);
       }
     });
   }
@@ -275,7 +305,7 @@ function scanPageForIndicators() {
   if (settings.detectForms) {
     document.querySelectorAll('form').forEach(form => {
       if (!form._capweIndicator) {
-        createIndicator(form, 'form', '📝');
+        createIndicator(form, 'form', 'FORM');
       }
     });
   }
@@ -289,7 +319,7 @@ function scanPageForIndicators() {
         const isActuallyHidden = isHidden(element);
         
         if (isTrackingPixel || (isActuallyHidden && (tagName === 'iframe' || tagName === 'form'))) {
-          createIndicator(element, 'hidden-element', '👁️');
+          createIndicator(element, 'hidden-element', 'HIDDEN');
         }
       }
     });

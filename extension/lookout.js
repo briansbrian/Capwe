@@ -9,12 +9,18 @@ const DEFAULT_LOOK_OUT_CONFIG = {
 };
 
 // Use shared utility for ID generation or fallback
-const generateId = window.CapweUtils?.generateId || function(prefix = 'id') {
+function generateId(prefix = 'id') {
+  // Try to use shared utility first
+  if (window.CapweUtils?.generateId) {
+    return window.CapweUtils.generateId(prefix);
+  }
+  
+  // Fallback implementation
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
     return `${prefix}-${crypto.randomUUID()}`;
   }
   return `${prefix}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-};
+}
 
 // Current active criteria
 let lookOutConfig = DEFAULT_LOOK_OUT_CONFIG;
